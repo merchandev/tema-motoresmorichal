@@ -1,0 +1,13 @@
+{
+  "php.validate.enable": false,
+  "php.suggest.basic": false,
+  "intelephense.diagnostics.enable": false,
+  "typescript.validate.enable": true,
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "files.associations": {
+    "*.php": "php"
+  },
+  "php.problems.exclude": {
+    "**/*.php": true
+  }
+}

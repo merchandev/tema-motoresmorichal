@@ -1,0 +1,610 @@
+<?php get_header(); ?>
+
+<main id="site-main">
+  <!-- ==========================
+        SLIDER DE VIDEOS - Elementor Moderno
+  ========================== -->
+  <!-- Swiper CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+
+  <div id="custom-slider" class="custom-slider swiper">
+    <div class="swiper-wrapper">
+      <!-- Slide 1 -->
+      <div class="swiper-slide cs-slide" data-index="0">
+        <video class="cs-video-bg" autoplay muted playsinline loop preload="metadata">
+          <source src="https://mmorichal.arturomerchan.com/wp-content/uploads/2025/09/TOYO-SLIDE1-2025.mp4" type="video/mp4">
+        </video>
+        <div class="cs-slide-content cs-left animate-in">
+          <h2>Título Slide 1</h2>
+          <p>Texto descriptivo para el primer video.</p>
+          <a href="#" class="cs-btn-slide">Ver más</a>
+        </div>
+      </div>
+
+      <!-- Slide 2 -->
+      <div class="swiper-slide cs-slide" data-index="1">
+        <video class="cs-video-bg" autoplay muted playsinline loop preload="metadata">
+          <source src="https://mmorichal.arturomerchan.com/wp-content/uploads/2025/09/TOYO-SLIDE2-2025.mp4" type="video/mp4">
+        </video>
+        <div class="cs-slide-content cs-left animate-in">
+          <h2>Título Slide 2</h2>
+          <p>Texto descriptivo para el segundo video.</p>
+          <a href="#" class="cs-btn-slide">Explorar</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flechas -->
+    <div class="cs-swiper-button-prev swiper-button-prev" aria-label="Anterior"></div>
+    <div class="cs-swiper-button-next swiper-button-next" aria-label="Siguiente"></div>
+
+    <!-- Barras de progreso -->
+    <div class="cs-progress-bars">
+      <div class="cs-progress-bar"><span></span></div>
+      <div class="cs-progress-bar"><span></span></div>
+    </div>
+  </div>
+
+  <!-- ========================== ESTILOS DEL SLIDER ========================== -->
+  <style>
+    /* Contenedor */
+    #custom-slider { position:relative; width:100%; height:650px; overflow:hidden; font-family: "Poppins", sans-serif; }
+    /* Slides / Videos */
+    #custom-slider .cs-slide { position:relative; overflow:hidden; }
+    #custom-slider .cs-video-bg { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; pointer-events:none; }
+    /* Overlay */
+    #custom-slider .cs-slide::before { content:""; position:absolute; inset:0; background: linear-gradient(to right, rgba(0,0,0,0.75), rgba(0,0,0,0.15)); z-index:2; pointer-events:none; }
+    /* Animaciones de entrada */
+    @keyframes fadeUp { 0% {opacity:0; transform:translateY(40px);} 100% {opacity:1; transform:translateY(0);} }
+    .animate-in h2, .animate-in p, .animate-in a { opacity:0; animation: fadeUp 0.9s ease forwards; }
+    .animate-in h2 { animation-delay: 0.2s; }
+    .animate-in p { animation-delay: 0.4s; }
+    .animate-in a { animation-delay: 0.6s; }
+    /* Contenido */
+    #custom-slider .cs-slide-content { position:absolute; top:50%; transform:translateY(-50%); left:8%; max-width:480px; color:#fff; z-index:3; }
+    #custom-slider .cs-slide-content h2 { font-size:3rem; margin-bottom:15px; font-weight:700; text-shadow: 0 4px 18px rgba(0,0,0,0.6); }
+    #custom-slider .cs-slide-content p { font-size:1.2rem; margin-bottom:25px; color:#e9e9e9; line-height:1.5; }
+    #custom-slider .cs-btn-slide { display:inline-block; padding:14px 34px; border-radius:40px; background:rgba(255,45,45,0.9); backdrop-filter: blur(6px); color:#fff; font-weight:600; text-decoration:none; transition:all .35s ease; box-shadow:0 4px 16px rgba(255,45,45,0.45); }
+    #custom-slider .cs-btn-slide:hover { background:rgba(255,45,45,1); transform: translateY(-4px) scale(1.05); box-shadow:0 6px 22px rgba(255,45,45,0.65); }
+    /* Flechas */
+    #custom-slider .cs-swiper-button-next, #custom-slider .cs-swiper-button-prev { position:absolute; top:50%; transform:translateY(-50%); width:58px; height:58px; border-radius:50%; background:rgba(0,0,0,0.55); display:flex; align-items:center; justify-content:center; z-index:60; cursor:pointer; transition: all .35s ease; }
+    #custom-slider .cs-swiper-button-prev { left:22px; }
+    #custom-slider .cs-swiper-button-next { right:22px; }
+    #custom-slider .cs-swiper-button-next:after, #custom-slider .cs-swiper-button-prev:after { font-size:22px; color:#fff; font-weight:bold; }
+    #custom-slider .cs-swiper-button-next:hover, #custom-slider .cs-swiper-button-prev:hover { transform: translateY(-50%) scale(1.2); background: rgba(255,45,45,0.9); box-shadow: 0 0 24px rgba(255,45,45,0.75); }
+    /* Barras de progreso */
+    #custom-slider .cs-progress-bars { position:absolute; bottom:25px; left:50%; transform:translateX(-50%); display:flex; gap:10px; width:80%; z-index:70; }
+    #custom-slider .cs-progress-bar { flex:1; height:6px; background:rgba(255,255,255,0.25); border-radius:4px; overflow:hidden; }
+    #custom-slider .cs-progress-bar span { display:block; height:100%; width:0%; background: linear-gradient(90deg,#ff2d2d,#b30000); transition: width 1.2s cubic-bezier(.77,0,.18,1); box-shadow:0 0 10px rgba(255,45,45,0.3); border-radius: 4px; }
+    /* Responsive */
+    @media (max-width:1024px) { #custom-slider .cs-swiper-button-next, #custom-slider .cs-swiper-button-prev { display:none; } }
+    @media (max-width:768px) { #custom-slider { height:500px; } #custom-slider .cs-slide-content { left:6%; max-width:90%; } #custom-slider .cs-slide-content h2 { font-size:2.2rem; } #custom-slider .cs-slide-content p { font-size:1rem; } }
+    @media (max-width:480px) { #custom-slider { height:400px; } #custom-slider .cs-slide-content h2 { font-size:1.6rem; } #custom-slider .cs-slide-content p { font-size:0.9rem; } }
+  </style>
+
+  <!-- Swiper JS -->
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+  <!-- ========================== SCRIPT DEL SLIDER ========================== -->
+  <script>
+    (function() {
+      window.addEventListener('load', function () {
+        var slider = document.getElementById('custom-slider');
+        if (!slider) return;
+
+        var videos = slider.querySelectorAll('video');
+        var progressSpans = slider.querySelectorAll('.cs-progress-bar span');
+        var lastVideoListener = null;
+
+        var swiper = new Swiper('#custom-slider', {
+          loop: false,
+          navigation: { nextEl: '.cs-swiper-button-next', prevEl: '.cs-swiper-button-prev' },
+          allowTouchMove: true,
+          observer: true,
+          observeParents: true,
+          on: {
+            init: function () { updateProgress(this.realIndex); },
+            slideChange: function () { updateProgress(this.realIndex); }
+          }
+        });
+
+        function resetProgress() {
+          progressSpans.forEach(function(span) { span.style.width = '0%'; });
+          if (lastVideoListener && lastVideoListener.video) {
+            lastVideoListener.video.removeEventListener('timeupdate', lastVideoListener.handler);
+            lastVideoListener.video.removeEventListener('ended', lastVideoListener.endedHandler);
+            lastVideoListener = null;
+          }
+        }
+
+        function updateProgress(index) {
+          resetProgress();
+          var vid = videos[index];
+          var bar = progressSpans[index];
+          if (!vid || !bar) return;
+          vid.currentTime = 0;
+          vid.play().catch(function(){});
+          var handler = function() {
+            if (!vid.duration) return;
+            var percent = (vid.currentTime / vid.duration) * 100;
+            bar.style.width = percent + '%';
+          };
+          var endedHandler = function() {
+            bar.style.width = '100%';
+          };
+          vid.addEventListener('timeupdate', handler);
+          vid.addEventListener('ended', endedHandler);
+          lastVideoListener = { video: vid, handler: handler, endedHandler: endedHandler };
+        }
+
+        updateProgress(swiper.realIndex);
+      });
+    })();
+  </script>
+
+  <!-- ==========================
+        SLIDER DE VEHÍCULOS - Barra de categorías
+  ========================== -->
+  <section id="vehiculos" class="toyota-section">
+    <!-- NAV / TABS -->
+    <nav class="toyota-nav" aria-label="Categorías de vehículos">
+      <div class="toyota-tabs" role="tablist">
+        <button class="toyota-tab is-active" data-cat="all" aria-selected="true">Todos</button>
+        <button class="toyota-tab" data-cat="cars" aria-selected="false">Camioneta</button>
+        <button class="toyota-tab" data-cat="trucks" aria-selected="false">Pasajero</button>
+        <button class="toyota-tab" data-cat="crossovers" aria-selected="false">Pick Up´s</button>
+        <button class="toyota-tab" data-cat="electrified" aria-selected="false">Comercial</button>
+        <span class="toyota-tab-indicator"></span>
+      </div>
+    </nav>
+
+    <!-- SLIDER -->
+    <div class="toyota-slider swiper">
+      <div class="swiper-wrapper"><!-- Slides renderizados por JS --></div>
+      <div class="toyota-arrow swiper-button-prev"></div>
+      <div class="toyota-arrow swiper-button-next"></div>
+    </div>
+
+    <!-- TEMPLATES -->
+    <div class="toyota-templates" hidden aria-hidden="true">
+      <!-- Ejemplos como en tu código -->
+      <template data-cat="cars crossovers">
+        <article class="toyota-card">
+          <figure class="toyota-imgbox">
+            <img src="https://mmorichal.arturomerchan.com/wp-content/uploads/2025/08/AGYA-MOTORES-MORICHAL-TOYOTA-MONAGAS.webp" alt="2025 Toyota Agya" decoding="async">
+          </figure>
+          <div class="toyota-info">
+            <header class="toyota-info-text">
+              <span class="toyota-year">2025</span>
+              <h3>Toyota Agya</h3>
+              <p>Compacto, ágil y diseñado para la ciudad.</p>
+            </header>
+            <div class="toyota-buttons">
+              <a href="#" class="toyota-btn">Más información <i class="fas fa-arrow-right"></i></a>
+              <span class="toyota-contact"><a href="#contacto">Contáctanos &gt;</a></span>
+            </div>
+          </div>
+        </article>
+      </template>
+      <!-- Más templates según tu código original -->
+    </div>
+  </section>
+
+  <!-- Swiper CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    /* ====== NAV / BARRA DE CATEGORÍAS ====== */
+    #vehiculos .toyota-tabs { position: relative; display: flex; justify-content: center; gap: 2rem; padding-bottom: .5rem; border-bottom: 2px solid #ccc; overflow-x: auto; }
+    #vehiculos .toyota-tab { position: relative; background: none; border: none; padding: 0; font-weight: 600; color: #555; cursor: pointer; font-size: 1rem; }
+    #vehiculos .toyota-tab:hover { color: #EB0A1E; }
+    #vehiculos .toyota-tab-indicator { position: absolute; bottom: -2px; left: 0; width: 0; height: 3px; background-color: #EB0A1E; border-radius: 3px; transition: all .3s ease; }
+    /* ====== SLIDER ====== */
+    #vehiculos .toyota-slider { padding: 1rem 0; }
+    #vehiculos .toyota-slider .swiper-slide { height: auto; }
+    /* ====== CARD ====== */
+    #vehiculos .toyota-card { display: flex; flex-direction: column; border-radius: 24px; overflow: hidden; background: #fff; border: 1px solid #f0f0f0; }
+    #vehiculos .toyota-imgbox { width: 100%; aspect-ratio: 4/3; }
+    #vehiculos .toyota-imgbox img { width: 100%; height: 100%; object-fit: cover; }
+    /* Info */
+    #vehiculos .toyota-info { background: #1f3f3b; color: #fff; padding: 1rem; display:flex; flex-direction:column; gap:.5rem; }
+    #vehiculos .toyota-info-text h3 { margin:0; font-size:1.05rem; font-weight:800; }
+    #vehiculos .toyota-info-text p { margin:0; font-size:.95rem; color:#e9f0ef; }
+    /* Botones */
+    #vehiculos .toyota-btn { background:#EB0A1E; color:#fff; padding:.6rem 1.2rem; border-radius:24px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:.4rem; transition:.3s; }
+    #vehiculos .toyota-btn:hover { background:#c60c18; transform:translateX(4px); }
+    #vehiculos .toyota-contact a { color:#fff; text-decoration:none; font-weight:600; }
+    #vehiculos .toyota-contact a:hover { text-decoration:underline; }
+    /* Flechas */
+    #vehiculos .toyota-arrow { background:#000; color:#fff; width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+    #vehiculos .toyota-arrow::after { font-size:18px; }
+    @media (max-width:1023px) { #vehiculos .toyota-arrow { display:none !important; } }
+  </style>
+
+  <!-- Swiper JS -->
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <script>
+    (function(){
+      const wrapper = document.querySelector('#vehiculos .toyota-slider .swiper-wrapper');
+      const templates = Array.from(document.querySelectorAll('#vehiculos .toyota-templates template'));
+      const tabs = document.querySelectorAll('#vehiculos .toyota-tab');
+      const indicator = document.querySelector('#vehiculos .toyota-tab-indicator');
+
+      const swiper = new Swiper('#vehiculos .toyota-slider', {
+        spaceBetween: 20,
+        navigation: {
+          nextEl: '#vehiculos .toyota-arrow.swiper-button-next',
+          prevEl: '#vehiculos .toyota-arrow.swiper-button-prev'
+        },
+        breakpoints: { 0:{slidesPerView:1}, 768:{slidesPerView:2}, 1024:{slidesPerView:3} }
+      });
+
+      function buildSlides(category='all'){
+        wrapper.innerHTML = '';
+        const items = templates.filter(t => category==='all' || (t.dataset.cat||'').includes(category));
+        items.forEach(tpl=>{
+          const slide = document.createElement('div');
+          slide.className='swiper-slide';
+          slide.appendChild(tpl.content.cloneNode(true));
+          wrapper.appendChild(slide);
+        });
+        swiper.update();
+      }
+
+      function moveIndicator(tab){
+        const rect = tab.getBoundingClientRect();
+        const parentRect = tab.parentElement.getBoundingClientRect();
+        indicator.style.width = rect.width+'px';
+        indicator.style.transform = 'translateX(' + (rect.left - parentRect.left) + 'px)';
+      }
+
+      tabs.forEach(tab=>{
+        tab.addEventListener('click', ()=>{
+          document.querySelector('#vehiculos .toyota-tab.is-active')?.classList.remove('is-active');
+          tab.classList.add('is-active');
+          buildSlides(tab.dataset.cat || 'all');
+          moveIndicator(tab);
+        });
+      });
+
+      // Inicializar indicador
+      const activeTab = document.querySelector('#vehiculos .toyota-tab.is-active');
+      if(activeTab) moveIndicator(activeTab);
+      // Construir los slides iniciales
+      buildSlides();
+    })();
+  </script>
+
+  <!-- 🎒 Sección de Accesorios Toyota -->
+  <section id="accesorios-mm" class="accesorios-mm">
+    <div class="accesorios-overlay">
+      <div class="accesorios-content">
+        <h2>Accesorios Originales Toyota</h2>
+        <p>Equipa tu Toyota con accesorios diseñados para potenciar estilo, comodidad y seguridad, siempre con la calidad original.</p>
+        <a href="#" class="accesorio-btn">Explorar Accesorios <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Font Awesome para íconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    /* ========= Encapsulado en #accesorios-mm ========= */
+    #accesorios-mm { position: relative; background-image: url('https://mmorichal.arturomerchan.com/wp-content/uploads/2025/08/4runner-4R-I1.jpg'); background-size: cover; background-position: center; background-attachment: fixed; border-radius: 24px; overflow: hidden; height: 500px; display: flex; align-items: center; justify-content: center; }
+    /* ===== Overlay ===== */
+    #accesorios-mm .accesorios-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.85)); display: flex; align-items: center; justify-content: center; padding: 2rem; }
+    /* ===== Contenido ===== */
+    #accesorios-mm .accesorios-content { max-width: 720px; text-align: center; color: #fff; animation: fadeInUp 1s ease forwards; }
+    #accesorios-mm .accesorios-content h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 1rem; text-shadow: 0 3px 6px rgba(0,0,0,0.6); }
+    #accesorios-mm .accesorios-content p { font-size: 1.1rem; margin-bottom: 2rem; color: #d1d5db; line-height: 1.6; }
+    /* ===== Botón ===== */
+    #accesorios-mm .accesorio-btn { background: #EB0A1E; color: #fff; padding: .9rem 1.8rem; border-radius: 999px; font-size: 1rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: .5rem; transition: background .3s ease, transform .3s ease; }
+    #accesorios-mm .accesorio-btn:hover { background: #c30916; transform: translateY(-3px); }
+    /* ===== Animación ===== */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    /* ===== Responsive ===== */
+    @media (max-width: 768px) { #accesorios-mm { height: 400px; } #accesorios-mm .accesorios-content h2 { font-size: 1.6rem; } #accesorios-mm .accesorios-content p { font-size: 1rem; } }
+  </style>
+
+  <!-- 🚀 Sección de Servicios con ID info-mm -->
+  <section id="info-mm" class="info-mm">
+    <div class="services-grid">
+      <!-- Card 1 -->
+      <div class="service-card">
+        <div class="service-icon">
+          <i class="fas fa-car"></i>
+        </div>
+        <h3>Vehículos</h3>
+        <p>Descubre toda la gama de vehículos disponibles, pensados para tu estilo de vida.</p>
+        <a href="#" class="service-btn">Explorar <i class="fas fa-arrow-right"></i></a>
+      </div>
+      <!-- Card 2 -->
+      <div class="service-card">
+        <div class="service-icon">
+          <i class="fas fa-cogs"></i>
+        </div>
+        <h3>Repuestos</h3>
+        <p>Solicita repuestos originales Toyota con garantía y confianza asegurada.</p>
+        <a href="#" class="service-btn">Pedir repuestos <i class="fas fa-arrow-right"></i></a>
+      </div>
+      <!-- Card 3 -->
+      <div class="service-card">
+        <div class="service-icon">
+          <i class="fas fa-tools"></i>
+        </div>
+        <h3>Servicios</h3>
+        <p>Mantenimiento, revisión y asistencia técnica especializada para tu Toyota.</p>
+        <a href="#" class="service-btn">Agendar cita <i class="fas fa-arrow-right"></i></a>
+      </div>
+      <!-- Card 4 -->
+      <div class="service-card">
+        <div class="service-icon">
+          <i class="fab fa-whatsapp"></i>
+        </div>
+        <h3>Citas</h3>
+        <p>Agenda tu cita de forma rápida y sencilla, estamos a un clic de distancia.</p>
+        <a href="#" class="service-btn">Contáctanos <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Font Awesome para iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    /* ========= Encapsulado en #info-mm ========= */
+    #info-mm { background: linear-gradient(135deg, #1f3f3b, #111); padding: 4rem 2rem; display: flex; justify-content: center; border-radius: 24px; }
+    #info-mm .services-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; width: 100%; max-width: 1280px; }
+    /* ===== Card ===== */
+    #info-mm .service-card { background: rgba(255, 255, 255, 0.03); border-radius: 24px; padding: 2rem 1.5rem; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 360px; transition: all .35s ease; box-shadow: 0 6px 16px rgba(0,0,0,0.25); }
+    #info-mm .service-card:hover { transform: translateY(-8px) scale(1.03); box-shadow: 0 12px 24px rgba(0,0,0,0.35); }
+    /* ===== Iconos ===== */
+    #info-mm .service-icon { font-size: 2.8rem; color: #ff2d2d; margin-bottom: 1.2rem; transition: transform .4s ease; }
+    #info-mm .service-card:hover .service-icon { transform: rotate(8deg) scale(1.2); }
+    /* ===== Texto ===== */
+    #info-mm .service-card h3 { margin-bottom: .5rem; font-size: 1.3rem; font-weight: 800; color: #ffffff; transition: text-shadow .3s ease; }
+    #info-mm .service-card:hover h3 { text-shadow: 0 0 8px rgba(255,255,255,0.6); }
+    #info-mm .service-card p { font-size: .95rem; color: #d1d5db; line-height: 1.5; margin-bottom: 1.5rem; flex-grow: 1; }
+    /* ===== Botón ===== */
+    #info-mm .service-btn { background: #ff2d2d; color: #fff; padding: .7rem 1.4rem; border-radius: 999px; font-size: .95rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: .5rem; transition: background .3s ease, transform .3s ease; }
+    #info-mm .service-btn:hover { background: #e11b1b; transform: translateX(4px); }
+    /* ===== Responsive ===== */
+    @media (max-width: 1024px) { #info-mm { padding: 3rem 1.5rem; } #info-mm .services-grid { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; } #info-mm .service-card { min-height: 340px; } }
+    @media (max-width: 640px) { #info-mm { padding: 2rem 1rem; } #info-mm .services-grid { grid-template-columns: 1fr; gap: 1rem; } #info-mm .service-card { min-height: auto; padding: 1.5rem 1rem; } #info-mm .service-card h3 { font-size: 1.2rem; } #info-mm .service-card p { font-size: 0.9rem; } }
+  </style>
+
+  <!-- 🚀 Sección Sobre Nosotros -->
+  <section id="sobre-nosotros" class="sobre-nosotros">
+    <div class="sobre-nosotros-container">
+      <!-- Texto -->
+      <div class="sobre-nosotros-text">
+        <h2>Sobre Nosotros</h2>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur nec elit in urna bibendum interdum. Nulla facilisi. Morbi tincidunt, urna sit amet tincidunt pharetra, lacus nunc egestas ligula, ac vehicula magna felis ut erat.
+        </p>
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer sagittis nulla a turpis ornare, nec fermentum sapien gravida.
+        </p>
+        <!-- Botón -->
+        <a href="#" class="sobre-nosotros-btn">Más información <i class="fas fa-arrow-right"></i></a>
+      </div>
+      <!-- Collage -->
+      <div class="sobre-nosotros-images">
+        <div class="img img1">
+          <img src="https://mmorichal.arturomerchan.com/wp-content/uploads/2025/08/MOTORES-MORICHAL-MATURIN.png" alt="Imagen Principal" width="400" height="500" loading="lazy">
+        </div>
+        <div class="img img2">
+          <img src="https://mmorichal.arturomerchan.com/wp-content/uploads/2025/08/Motores-Morichal-tu-concesionario-Toyota-en-Maturin-🚘@toyotavenezuelaoficial-📍Visitanos-Av.-Al.jpg" alt="Imagen Secundaria 1" width="400" height="300" loading="lazy">
+        </div>
+        <div class="img img3">
+          <img src="https://mmorichal.arturomerchan.com/wp-content/uploads/2025/08/Encuentra-en-Motores-Morichal-el-vehiculo-de-tus-suenos-🤩🚘Ademas-disfruta-del-servicio-👇🏻✅-M-1.jpg" alt="Imagen Secundaria 2" width="300" height="400" loading="lazy">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Font Awesome para iconos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    /* ====== Sección Sobre Nosotros ====== */
+    #sobre-nosotros.sobre-nosotros { background: linear-gradient(135deg, #1f3f3b, #111); padding: 5rem 2rem; display: flex; justify-content: center; border-radius: 24px; font-family: 'Poppins', sans-serif; }
+    .sobre-nosotros-container { display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 3rem; max-width: 1280px; width: 100%; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border-radius: 24px; padding: 3rem; box-shadow: 0 8px 30px rgba(0,0,0,0.35); transition: transform .3s ease, box-shadow .3s ease; }
+    .sobre-nosotros-container:hover { transform: scale(1.01); box-shadow: 0 10px 40px rgba(0,0,0,0.45); }
+    /* ===== Texto ===== */
+    .sobre-nosotros-text h2 { font-size: 2.5rem; font-weight: 800; color: #ffffff; margin-bottom: 1.5rem; position: relative; display: inline-block; }
+    .sobre-nosotros-text h2::after { content: ""; position: absolute; bottom: -6px; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, #ff2d2d, #ff6b6b); transform: scaleX(0); transform-origin: left; transition: transform .4s ease; }
+    .sobre-nosotros-text h2:hover::after { transform: scaleX(1); }
+    .sobre-nosotros-text p { font-size: 1rem; color: #d1d5db; line-height: 1.7; margin-bottom: 1rem; }
+    /* ===== Botón ===== */
+    .sobre-nosotros-btn { background: linear-gradient(90deg, #ff2d2d, #ff6b6b); color: #fff; padding: .9rem 1.8rem; border-radius: 999px; font-size: 1rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: .5rem; margin-top: 1.5rem; transition: all .3s ease; box-shadow: 0 0 15px rgba(255,45,45,0.4); }
+    .sobre-nosotros-btn:hover { color: #fff; transform: translateX(6px) scale(1.05); box-shadow: 0 0 25px rgba(255,45,45,0.7); }
+    .sobre-nosotros-btn i { transition: transform .3s ease; }
+    .sobre-nosotros-btn:hover i { transform: translateX(4px); }
+    /* ===== Collage ===== */
+    .sobre-nosotros-images { display: grid; grid-template-areas: "img1 img2" "img1 img3"; gap: 1rem; }
+    .sobre-nosotros-images .img { overflow: hidden; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.35); transition: transform .4s ease, box-shadow .4s ease; background: #222; }
+    .sobre-nosotros-images .img:hover { transform: scale(1.05); box-shadow: 0 12px 30px rgba(0,0,0,0.55); }
+    .sobre-nosotros-images img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 20px; }
+    /* Posiciones del collage */
+    .sobre-nosotros .img1 { grid-area: img1; }
+    .sobre-nosotros .img2 { grid-area: img2; }
+    .sobre-nosotros .img3 { grid-area: img3; }
+    /* ===== Responsive ===== */
+    @media (max-width: 1024px) { .sobre-nosotros-container { grid-template-columns: 1fr; text-align: center; padding: 2rem; } .sobre-nosotros-images { grid-template-areas: "img1" "img2" "img3"; } .sobre-nosotros-btn { justify-content: center; } }
+    @media (max-width: 640px) { #sobre-nosotros.sobre-nosotros { padding: 3rem 1rem; } .sobre-nosotros-container { padding: 1.5rem; } .sobre-nosotros-text h2 { font-size: 1.9rem; } }
+  </style>
+
+  <!-- 🛠️ Sección de Productos - Repuestos Toyota -->
+  <section id="productos-mm" class="productos-mm">
+    <div class="productos-grid">
+      <!-- Producto 1 -->
+      <div class="producto-card">
+        <div class="producto-icon">
+          <i class="fas fa-filter"></i>
+        </div>
+        <h3>Filtro de Aceite</h3>
+        <p>Filtro original Toyota para mantener el motor en óptimas condiciones.</p>
+        <span class="producto-precio">$25.00</span>
+        <a href="#" class="producto-btn">Añadir al carrito <i class="fas fa-arrow-right"></i></a>
+      </div>
+      <!-- Producto 2 -->
+      <div class="producto-card">
+        <div class="producto-icon">
+          <i class="fas fa-car-battery"></i>
+        </div>
+        <h3>Batería Original</h3>
+        <p>Batería Toyota de alto rendimiento y larga duración.</p>
+        <span class="producto-precio">$120.00</span>
+        <a href="#" class="producto-btn">Añadir al carrito <i class="fas fa-arrow-right"></i></a>
+      </div>
+      <!-- Producto 3 -->
+      <div class="producto-card">
+        <div class="producto-icon">
+          <i class="fas fa-car-side"></i>
+        </div>
+        <h3>Pastillas de Freno</h3>
+        <p>Juego de pastillas delanteras originales Toyota, máxima seguridad.</p>
+        <span class="producto-precio">$80.00</span>
+        <a href="#" class="producto-btn">Añadir al carrito <i class="fas fa-arrow-right"></i></a>
+      </div>
+      <!-- Producto 4 -->
+      <div class="producto-card">
+        <div class="producto-icon">
+          <i class="fas fa-wind"></i>
+        </div>
+        <h3>Filtro de Aire</h3>
+        <p>Filtro de aire Toyota para mayor eficiencia y consumo optimizado.</p>
+        <span class="producto-precio">$35.00</span>
+        <a href="#" class="producto-btn">Añadir al carrito <i class="fas fa-arrow-right"></i></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    /* ========= Encapsulado en #productos-mm ========= */
+    #productos-mm { background: linear-gradient(135deg, #1f3f3b, #111); padding: 4rem 2rem; display: flex; justify-content: center; border-radius: 24px; }
+    #productos-mm .productos-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; width: 100%; max-width: 1280px; }
+    /* ===== Card ===== */
+    #productos-mm .producto-card { background: rgba(255, 255, 255, 0.03); border-radius: 24px; padding: 2rem 1.5rem; text-align: center; display: flex; flex-direction: column; align-items: center; min-height: 360px; transition: all .35s ease; box-shadow: 0 6px 16px rgba(0,0,0,0.25); }
+    #productos-mm .producto-card:hover { transform: translateY(-8px) scale(1.03); box-shadow: 0 12px 24px rgba(0,0,0,0.35); }
+    /* ===== Iconos ===== */
+    #productos-mm .producto-icon { font-size: 2.8rem; color: #EB0A1E; margin-bottom: 1.2rem; transition: transform .4s ease; }
+    #productos-mm .producto-card:hover .producto-icon { transform: rotate(8deg) scale(1.2); }
+    /* ===== Texto ===== */
+    #productos-mm .producto-card h3 { margin-bottom: .5rem; font-size: 1.3rem; font-weight: 800; color: #ffffff; transition: text-shadow .3s ease; }
+    #productos-mm .producto-card:hover h3 { text-shadow: 0 0 8px rgba(255,255,255,0.6); }
+    #productos-mm .producto-card p { font-size: .95rem; color: #d1d5db; line-height: 1.5; margin-bottom: 1.2rem; flex-grow: 1; }
+    #productos-mm .producto-precio { font-size: 1.2rem; font-weight: bold; color: #EB0A1E; margin-bottom: 1.5rem; }
+    /* ===== Botón ===== */
+    #productos-mm .producto-btn { background: #EB0A1E; color: #fff; padding: .7rem 1.4rem; border-radius: 999px; font-size: .95rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: .5rem; transition: background .3s ease, transform .3s ease; }
+    #productos-mm .producto-btn:hover { background: #e11b1b; transform: translateX(4px); }
+    /* ===== Responsive ===== */
+    @media (max-width: 1024px) { #productos-mm { padding: 3rem 1.5rem; } #productos-mm .productos-grid { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; } #productos-mm .producto-card { min-height: 340px; } }
+    @media (max-width: 640px) { #productos-mm { padding: 2rem 1rem; } #productos-mm .productos-grid { grid-template-columns: 1fr; gap: 1rem; } #productos-mm .producto-card { min-height: auto; padding: 1.5rem 1rem; } #productos-mm .producto-card h3 { font-size: 1.2rem; } #productos-mm .producto-card p { font-size: 0.9rem; } }
+  </style>
+
+  <!-- 📰 Sección de Blog -->
+  <section id="blog-mm" class="blog-mm">
+    <div class="blog-header">
+      <h2>Nuestro Blog</h2>
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Descubre las últimas noticias y artículos.</p>
+    </div>
+
+    <div class="blog-grid">
+      <!-- Post 1 -->
+      <article class="blog-card">
+        <div class="blog-img">
+          <img src="https://picsum.photos/600/400?random=1" alt="Post 1">
+        </div>
+        <div class="blog-content">
+          <span class="blog-meta">12 Ago 2025 • Admin</span>
+          <h3>Lorem ipsum dolor sit amet</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque habitant morbi tristique senectus...</p>
+          <a href="#" class="blog-btn">Leer más</a>
+        </div>
+      </article>
+
+      <!-- Post 2 -->
+      <article class="blog-card">
+        <div class="blog-img">
+          <img src="https://picsum.photos/600/400?random=2" alt="Post 2">
+        </div>
+        <div class="blog-content">
+          <span class="blog-meta">10 Ago 2025 • Redacción</span>
+          <h3>Consectetur adipiscing elit</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus luctus urna sed urna ultricies...</p>
+          <a href="#" class="blog-btn">Leer más</a>
+        </div>
+      </article>
+
+      <!-- Post 3 -->
+      <article class="blog-card">
+        <div class="blog-img">
+          <img src="https://picsum.photos/600/400?random=3" alt="Post 3">
+        </div>
+        <div class="blog-content">
+          <span class="blog-meta">8 Ago 2025 • Invitado</span>
+          <h3>Curabitur sit amet mauris morbi</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis...</p>
+          <a href="#" class="blog-btn">Leer más</a>
+        </div>
+      </article>
+
+      <!-- Post 4 -->
+      <article class="blog-card">
+        <div class="blog-img">
+          <img src="https://picsum.photos/600/400?random=4" alt="Post 4">
+        </div>
+        <div class="blog-content">
+          <span class="blog-meta">5 Ago 2025 • Equipo</span>
+          <h3>Sed do eiusmod tempor incididunt</h3>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque a dui vel dolor hendrerit dapibus...</p>
+          <a href="#" class="blog-btn">Leer más</a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Font Awesome para iconos si necesitas -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    /* ========= Encapsulado en #blog-mm ========= */
+    #blog-mm { background: #0d0d0d; padding: 6rem 3rem; border-radius: 28px; max-width: 1440px; margin: 4rem auto; color: #fff; font-family: 'Segoe UI', sans-serif; }
+    /* ===== Header ===== */
+    #blog-mm .blog-header { text-align: center; max-width: 800px; margin: 0 auto 4rem; }
+    #blog-mm .blog-header h2 { font-size: 2.8rem; font-weight: 800; margin-bottom: 1.2rem; color: #ffffff; }
+    #blog-mm .blog-header p { font-size: 1.2rem; color: #d1d5db; }
+    /* ===== Grid ===== */
+    #blog-mm .blog-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2.5rem; }
+    /* ===== Card ===== */
+    #blog-mm .blog-card { background: rgba(255, 255, 255, 0.05); border-radius: 22px; overflow: hidden; display: flex; flex-direction: column; transition: transform .4s ease, box-shadow .4s ease; }
+    #blog-mm .blog-card:hover { transform: translateY(-10px); box-shadow: 0 14px 28px rgba(0,0,0,0.45); }
+    /* Imagen */
+    #blog-mm .blog-img img { width: 100%; height: 230px; object-fit: cover; transition: transform .5s ease; }
+    #blog-mm .blog-card:hover .blog-img img { transform: scale(1.07); }
+    /* Contenido */
+    #blog-mm .blog-content { padding: 1.8rem; display: flex; flex-direction: column; flex-grow: 1; }
+    #blog-mm .blog-meta { font-size: 0.95rem; color: #aaa; margin-bottom: .7rem; }
+    #blog-mm h3 { font-size: 1.4rem; margin-bottom: 1rem; font-weight: 700; color: #fff; }
+    #blog-mm p { flex-grow: 1; font-size: 1rem; line-height: 1.6; color: #d1d5db; margin-bottom: 1.5rem; }
+    #blog-mm .blog-btn { background: #EB0A1E; color: #fff; padding: .8rem 1.6rem; border-radius: 999px; font-size: 1rem; font-weight: 600; text-decoration: none; text-align: center; transition: background .3s ease, transform .3s ease; }
+    #blog-mm .blog-btn:hover { background: #e11b1b; transform: translateX(5px); }
+    /* ===== Responsive ===== */
+    @media (max-width: 1280px) { #blog-mm .blog-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 1024px) { #blog-mm .blog-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px) { #blog-mm { padding: 3rem 1.2rem; } #blog-mm .blog-grid { grid-template-columns: 1fr; gap: 1.8rem; } #blog-mm .blog-header h2 { font-size: 2.2rem; } }
+  </style>
+
+  
+</main>
+
+<?php get_footer(); ?>
+

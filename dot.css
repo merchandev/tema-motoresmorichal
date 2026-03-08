@@ -1,0 +1,19 @@
+.color-dot {
+  all: unset;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: var(--veh-color, #fff);
+  border: 2px solid #e5e7eb;
+  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.08);
+  cursor: pointer;
+  display: inline-block;
+  box-sizing: border-box;
+  margin: 0 8px 0 0;
+  vertical-align: middle;
+  transition: box-shadow 0.2s;
+}
+.color-dot.is-active {
+  box-shadow: 0 8px 24px rgba(17, 24, 39, .12), 0 0 2px #0f172a;
+  animation: veh-color-pop .26s ease;
+}

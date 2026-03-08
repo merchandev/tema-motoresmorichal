@@ -1,0 +1,250 @@
+/*
+Theme Name: Toyota Monagas By Merchan.Dev & Espressivo Venezuela
+Theme URI: https://arturomerchan.com/temas
+Author: Merchan.Dev & Espressivo Venezuela
+Author URI: https://arturomerchan.com
+Description: Tema WordPress moderno para Toyota Monagas, desarrollado por Merchan.Dev & Espressivo Venezuela.
+Version: 3.0
+Text Domain: toyota-monagas
+*/
+ 
+/* ==========================
+   VARIABLES GLOBALES
+========================== */
+:root {
+  --toyota-red: #EB0A1E;
+  --primary-bg: #f7f7f7;
+  --primary-text: #222;
+  --heading-font: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  --body-font: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  --container-padding: 24px;
+  /* Altura del header fija para separar el contenido del slider */
+  --header-h-desktop: 50px;
+  --header-h-mobile: 76px;
+  --header-h: var(--header-h-desktop);
+}
+
+/* ==========================
+   BASE
+========================== */
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--body-font);
+  background-color: var(--primary-bg);
+  color: var(--primary-text);
+  line-height: 1.6;
+}
+/* Empuja el contenido por debajo del header fijo (forzado para pruebas) */
+main#site-main { padding-top: var(--header-h, 0px) !important; margin-top: 0 !important; }
+
+/* Elimina cualquier margen del primer bloque para evitar banda blanca */
+main#site-main > :first-child { margin-top: 0 !important; border-top: 0 !important; }
+/* Asegura que el slider inicie pegado al header */
+#custom-slider { margin-top: 0 !important; }
+
+/* Contenedor global opcional */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: var(--container-padding);
+  padding-right: var(--container-padding);
+}
+
+/* ==========================
+   TIPOGRAFÃA
+========================== */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--heading-font);
+  font-weight: 700;
+  color: var(--primary-text);
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.75rem; }
+h4 { font-size: 1.5rem; }
+h5 { font-size: 1.25rem; }
+h6 { font-size: 1rem; }
+
+/* ==========================
+   BOTONES
+========================== */
+.button,
+button,
+input[type="button"],
+input[type="submit"],
+.service-btn,
+.accesorio-btn,
+.producto-btn,
+.blog-btn {
+  display: inline-block;
+  background-color: var(--toyota-red);
+  color: #fff;
+  padding: 12px 28px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+.button:hover,
+button:hover,
+input[type="button"]:hover,
+input[type="submit"]:hover,
+.service-btn:hover,
+.accesorio-btn:hover,
+.producto-btn:hover,
+.blog-btn:hover {
+  background-color: #c10818;
+  transform: translateY(-2px);
+}
+
+/* ==========================
+   HEADER
+========================== */
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: transparent;
+  padding: 12px var(--container-padding);
+  z-index: 1000;
+  transition: background .3s ease, backdrop-filter .3s ease;
+}
+.site-header.scrolled {
+  background: #000;
+  backdrop-filter: none;
+}
+.site-header .main-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.site-logo img { height: 34px; width: auto; display: block; }
+.site-header a { color: #fff; text-decoration: none; }
+.site-header a:hover { color: var(--toyota-red); }
+.site-header .menu {
+  display: flex;
+  gap: 1.2rem;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.site-header .menu li a {
+  padding: 10px 14px;
+  position: relative;
+  font-weight: 600;
+}
+.site-header .menu li a::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 6px;
+  height: 2px;
+  background: var(--toyota-red);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .25s ease;
+}
+.site-header .menu li a:hover::after,
+.site-header .menu li.current-menu-item > a::after {
+  transform: scaleX(1);
+}
+.nav-toggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  border: 0;
+  background: rgba(0,0,0,.35);
+  border-radius: 10px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.nav-toggle span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: #fff;
+  transition: transform .25s ease, opacity .25s ease;
+}
+.site-header.open .nav-toggle span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.site-header.open .nav-toggle span:nth-child(2) { opacity: 0; }
+.site-header.open .nav-toggle span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+@media (max-width: 1024px) {
+  .nav-toggle { display: inline-flex; }
+  .site-header .menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.9);
+    backdrop-filter: blur(6px);
+    padding: 16px;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .3s ease;
+  }
+  .site-header.open .menu { max-height: 320px; }
+}
+
+/* ==========================
+   HEADER MODERNO (nav-modern)
+========================== */
+.site-header.nav-modern { position: fixed; top: 0; left: 0; width: 100%; background: transparent; padding: 12px var(--container-padding); z-index: 1000; transition: background .3s ease, backdrop-filter .3s ease, box-shadow .3s ease; }
+.site-header.nav-modern.scrolled { background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+.site-header.nav-modern .main-nav { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.site-header.nav-modern .site-logo img { height: 38px; width: auto; display: block; transition: transform .25s ease; will-change: transform; }
+.site-header.nav-modern .site-logo:hover img { transform: scale(1.06); }
+
+/* Desktop menu */
+.site-header.nav-modern .nav-menu-modern { display: flex; gap: 1.2rem; align-items: center; list-style: none; margin: 0; padding: 0; }
+.site-header.nav-modern .nav-menu-modern > li > a { color: #fff; text-decoration: none; padding: 10px 14px; display: inline-block; position: relative; font-weight: 600; transition: color .25s ease; }
+.site-header.nav-modern .nav-menu-modern > li > a:hover { color: var(--toyota-red); }
+.site-header.nav-modern .nav-menu-modern > li > a::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: 6px; height: 2px; background: var(--toyota-red); transform: scaleX(0); transform-origin: left; transition: transform .25s ease; }
+.site-header.nav-modern .nav-menu-modern > li > a:hover::after,
+.site-header.nav-modern .nav-menu-modern > li.current-menu-item > a::after { transform: scaleX(1); }
+
+/* Mobile toggle */
+.nav-toggle-modern { display: none; width: 42px; height: 42px; border: 0; background: rgba(0,0,0,.35); border-radius: 10px; align-items: center; justify-content: center; gap: 4px; cursor: pointer; }
+.nav-toggle-modern span { display: block; width: 22px; height: 2px; background: #fff; transition: transform .25s ease, opacity .25s ease; }
+.site-header.open .nav-toggle-modern span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.site-header.open .nav-toggle-modern span:nth-child(2) { opacity: 0; }
+.site-header.open .nav-toggle-modern span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+/* Mobile menu */
+@media (max-width: 1024px) {
+  .nav-toggle-modern { display: inline-flex; }
+  .site-header.nav-modern .nav-menu-modern { position: absolute; top: 100%; left: 0; right: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(6px); padding: 16px; flex-direction: column; align-items: center; gap: 10px; max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+  .site-header.nav-modern.open .nav-menu-modern { max-height: 340px; }
+}
+
+/* ==========================
+   MENÃš LUXURY (nuevo header)
+========================== */
+.site-header.luxury-nav {
+  position: fixed;
+  top: 0; left: 0; width: 100%;
+  background: #000 !important; /* menÃº tradicional, no sobre el slide */
+  backdrop-filter: none;
+  padding: 10px 36px;
+  z-index: 999;
