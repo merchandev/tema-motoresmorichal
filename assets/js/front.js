@@ -107,31 +107,59 @@
     }
 
     function step(now) {
-      if (pausedByHover || !swiperInstance) return;
-      if (!progressSpans[activeIndex]) return;
-      if (!lastTs) lastTs = now;
-      progressMs += (now - lastTs);
-      lastTs = now;
+      if (!swiperInstance) return;
 
-      var span = progressSpans[activeIndex];
-      var pct = Math.min(100, (progressMs / SLIDE_DURATION) * 100);
-      span.style.width = pct + '%';
-
-      if (progressMs >= SLIDE_DURATION) {
-        span.style.width = '100%';
-        swiperInstance.slideNext();
+      if (!progressSpans[activeIndex]) {
+        if (!lastTs) lastTs = now;
+        rafId = requestAnimationFrame(step);
         return;
       }
+
+      var span = progressSpans[activeIndex];
+      var activeSlide = swiperInstance.slides[swiperInstance.activeIndex];
+      var activeVideo = activeSlide ? activeSlide.querySelector('video') : null;
+      var isWorkingVideo = activeVideo && !isNaN(activeVideo.duration) && activeVideo.duration > 0;
+      var currentDuration = SLIDE_DURATION;
+
+      if (isWorkingVideo) {
+        currentDuration = activeVideo.duration * 1000;
+      }
+
+      if (!lastTs) lastTs = now;
+      if (!pausedByHover) {
+        progressMs += (now - lastTs);
+      }
+      lastTs = now;
+
+      if (isWorkingVideo && activeVideo.readyState >= 2) {
+        progressMs = activeVideo.currentTime * 1000;
+        
+        if (pausedByHover && !activeVideo.paused) {
+          try { activeVideo.pause(); } catch(e){}
+        } else if (!pausedByHover && activeVideo.paused && activeVideo.currentTime < activeVideo.duration) {
+          try { activeVideo.play(); } catch(e){}
+        }
+      }
+
+      var pct = Math.min(100, (progressMs / currentDuration) * 100);
+      span.style.width = pct + '%';
+
+      if (progressMs >= currentDuration) {
+        span.style.width = '100%';
+        if (!isWorkingVideo) {
+          swiperInstance.slideNext();
+          return;
+        }
+      }
+
       rafId = requestAnimationFrame(step);
     }
 
     function startProgress() {
       progressMs = 0;
-      lastTs = performance.now();
-      if (!pausedByHover) {
-        stopProgress();
-        rafId = requestAnimationFrame(step);
-      }
+      lastTs = 0;
+      stopProgress();
+      rafId = requestAnimationFrame(step);
     }
 
     function assignVideoSource(video) {
@@ -175,6 +203,9 @@
             resolve();
           }
         }
+
+        // Fallback: If video doesn't resolve in 3 seconds, resolve anyway so slider isn't permanently stuck
+        setTimeout(resolve, 3000);
 
         function requestData() {
           video.addEventListener('canplaythrough', onReady, { once: true });
@@ -243,9 +274,8 @@
         if (videos.length > 0) {
           videos.forEach(function(v) {
             v.onended = function () {
-              if (!pausedByHover) {
-                swiper.slideNext();
-              }
+              // Advance to next slide immediately when video ends, regardless of hover state
+              swiper.slideNext();
             };
           });
         }
@@ -300,17 +330,10 @@
 
     slider.addEventListener('mouseenter', function () {
       pausedByHover = true;
-      stopProgress();
     });
 
     slider.addEventListener('mouseleave', function () {
       pausedByHover = false;
-      if (progressMs >= SLIDE_DURATION) {
-        progressMs = SLIDE_DURATION * 0.8;
-      }
-      lastTs = performance.now();
-      stopProgress();
-      rafId = requestAnimationFrame(step);
     });
   }
 

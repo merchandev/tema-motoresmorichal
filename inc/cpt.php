@@ -321,3 +321,75 @@ add_action('init', function(){
         }
     }
 });
+
+// ---------------------------------------------
+// Drag and Drop Slide Ordering
+// ---------------------------------------------
+add_action('admin_enqueue_scripts', function($hook) {
+    global $post_type;
+    if ($hook == 'edit.php' && $post_type == 'slide') {
+        wp_enqueue_script('jquery-ui-sortable');
+        wp_add_inline_script('jquery-ui-sortable', '
+            jQuery(document).ready(function($) {
+                $("table.wp-list-table tbody").sortable({
+                    items: "tr",
+                    cursor: "move",
+                    axis: "y",
+                    update: function(e, ui) {
+                        var order = [];
+                        $("table.wp-list-table tbody tr").each(function() {
+                            var id = $(this).attr("id");
+                            if (id) {
+                                order.push(id.replace("post-", ""));
+                            }
+                        });
+                        // Visual feedback
+                        ui.item.css("background-color", "#f0f0f0");
+                        
+                        $.post(ajaxurl, {
+                            action: "update_slide_order",
+                            order: order,
+                            nonce: "' . wp_create_nonce('update_slide_order_nonce') . '"
+                        }, function(response) {
+                            ui.item.animate({"background-color": "transparent"}, 500);
+                        });
+                    }
+                });
+                // Make the rows visually draggable
+                $("table.wp-list-table tbody tr").css("cursor", "move");
+            });
+        ');
+    }
+});
+
+add_action('wp_ajax_update_slide_order', function() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'update_slide_order_nonce')) {
+        wp_send_json_error();
+    }
+    if (!current_user_can('edit_posts')) {
+        wp_send_json_error();
+    }
+    
+    $order = isset($_POST['order']) ? (array) $_POST['order'] : array();
+    if (!empty($order)) {
+        foreach ($order as $menu_order => $post_id) {
+            wp_update_post(array(
+                'ID' => intval($post_id),
+                'menu_order' => $menu_order
+            ));
+        }
+        wp_send_json_success();
+    }
+    wp_send_json_error();
+});
+
+// Respect menu_order on edit.php for slides
+add_action('pre_get_posts', function($query) {
+    global $pagenow;
+    if (is_admin() && $pagenow == 'edit.php' && isset($_GET['post_type']) && $_GET['post_type'] == 'slide') {
+        if (!isset($_GET['orderby'])) {
+            $query->set('orderby', 'menu_order');
+            $query->set('order', 'ASC');
+        }
+    }
+});

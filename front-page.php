@@ -40,8 +40,14 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
               $type = get_post_meta($post_id, 'slide_type', true) ?: 'video';
               $video_url = get_post_meta($post_id, 'slide_video_url', true);
               $img_desktop = get_post_meta($post_id, 'slide_img_desktop', true);
+              if (empty($img_desktop) && has_post_thumbnail($post_id)) {
+                  $img_desktop = get_the_post_thumbnail_url($post_id, 'full');
+              }
+              
               $img_mobile = get_post_meta($post_id, 'slide_img_mobile', true);
-              if (!$img_mobile) $img_mobile = $img_desktop;
+              if (empty($img_mobile)) {
+                  $img_mobile = $img_desktop;
+              }
               
               $title = get_the_title();
               $desc = get_post_meta($post_id, 'slide_desc', true);
@@ -50,13 +56,17 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
               $btn_target = get_post_meta($post_id, 'slide_btn_target', true) == '1' ? '_blank' : '_self';
               ?>
               <div class="swiper-slide cs-slide" data-index="<?php echo $slide_count; ?>" data-type="<?php echo esc_attr($type); ?>">
-                <?php if ($type === 'video' && $video_url) : ?>
+                <?php if ($type === 'video' && !empty($video_url)) : ?>
                   <video class="cs-video-bg" muted playsinline preload="metadata" data-src="<?php echo esc_url($video_url); ?>" crossorigin="anonymous"></video>
-                <?php elseif ($type === 'image' && $img_desktop) : ?>
-                  <picture style="width: 100%; height: 100%;">
+                <?php elseif ($type === 'image' && !empty($img_desktop)) : ?>
+                  <?php if ($img_mobile && $img_mobile !== $img_desktop): ?>
+                  <picture class="cs-picture-bg" style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; display: block;">
                     <source media="(max-width: 768px)" srcset="<?php echo esc_url($img_mobile); ?>">
                     <img class="cs-video-bg" src="<?php echo esc_url($img_desktop); ?>" alt="<?php echo esc_attr($title); ?>" style="object-fit: cover; width: 100%; height: 100%;">
                   </picture>
+                  <?php else: ?>
+                    <img class="cs-video-bg desktop-media" src="<?php echo esc_url($img_desktop); ?>" alt="<?php echo esc_attr($title); ?>" style="object-fit: cover; width: 100%; height: 100%;">
+                  <?php endif; ?>
                 <?php endif; ?>
                 
                 <div class="cs-slide-content cs-left animate-in">
