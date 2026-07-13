@@ -6,6 +6,17 @@
 // Admin: page to reimport images for vehiculos missing featured image
 add_action('admin_menu', function(){
   add_submenu_page('edit.php?post_type=vehiculo', 'Reimportar imágenes', 'Reimportar imágenes', 'manage_options', 'toyota-reimport-images', 'toyota_reimport_images_page');
+
+  // Shortcut to Hero Slider Customizer from Sidebar Menu
+  add_menu_page(
+      'Hero Slider', 
+      'Hero Slider', 
+      'edit_theme_options', 
+      'customize.php?autofocus[section]=hero_slider_section', 
+      '', 
+      'dashicons-images-alt2', 
+      30
+  );
 });
 
 function toyota_reimport_images_page(){
