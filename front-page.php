@@ -1,11 +1,17 @@
 <?php get_header(); ?>
 
 <?php
-// Helper para renderizar video o imagen según la extensión
-function tm_render_slide_media($url, $is_mobile = false) {
+// Helper para renderizar video o imagen según la extensión o ID de adjunto
+function tm_render_slide_media($url_or_id, $is_mobile = false) {
+    if (empty($url_or_id)) return '';
+    
+    // Si WP_Customize_Media_Control guarda un ID numérico, obtenemos la URL real
+    $url = is_numeric($url_or_id) ? wp_get_attachment_url($url_or_id) : $url_or_id;
     if (empty($url)) return '';
+
     $ext = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION);
     $class = $is_mobile ? 'cs-video-bg mobile-media' : 'cs-video-bg desktop-media';
+    
     if (in_array(strtolower($ext), ['mp4', 'webm', 'ogg'])) {
         return '<video class="'.$class.'" muted playsinline preload="metadata" data-src="'.esc_url($url).'" crossorigin="anonymous"></video>';
     } else {
