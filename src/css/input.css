@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================
+   VEHICLE COLOR SELECTOR - ISOLATED STYLES
+   ========================================== */
+
+/* Active state for color buttons */
+.vp-color-btn.is-active {
+    @apply border-black;
+}
+
+.vp-color-btn.is-active span {
+    @apply border-black scale-110;
+}
+
+.vp-color-btn.is-active svg {
+    @apply opacity-100 scale-100;
+}
+
+/* Opacity transition for car image */
+.vp-car-img {
+    @apply transition-opacity duration-200;
+}
