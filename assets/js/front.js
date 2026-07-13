@@ -207,10 +207,11 @@
       if (idx >= total) { idx = idx % total; }
       var slide = swiper.slides[idx];
       if (!slide) return;
-      var vid = slide.querySelector('video');
-      if (!vid) return;
-      assignVideoSource(vid);
-      try { vid.load(); } catch (e) { }
+      var vids = slide.querySelectorAll('video');
+      vids.forEach(function(vid) {
+        assignVideoSource(vid);
+        try { vid.load(); } catch (e) { }
+      });
     }
 
     function primeAround(swiper) {
@@ -235,23 +236,25 @@
       markBars(activeIndex);
 
       var activeSlide = swiper.slides[swiper.activeIndex];
-      var video = activeSlide ? activeSlide.querySelector('video') : null;
+      var videos = activeSlide ? Array.prototype.slice.call(activeSlide.querySelectorAll('video')) : [];
 
       function begin() {
         if (token !== activationToken) return;
-        if (video) {
-          video.onended = function () {
-            if (!pausedByHover) {
-              swiper.slideNext();
-            }
-          };
+        if (videos.length > 0) {
+          videos.forEach(function(v) {
+            v.onended = function () {
+              if (!pausedByHover) {
+                swiper.slideNext();
+              }
+            };
+          });
         }
         startProgress();
         primeAround(swiper);
       }
 
-      if (video) {
-        ensureVideo(video).then(begin);
+      if (videos.length > 0) {
+        Promise.all(videos.map(ensureVideo)).then(begin);
       } else {
         begin();
         primeAround(swiper);
