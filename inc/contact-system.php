@@ -30,9 +30,17 @@ function mm_register_lead_cpt() {
         'show_in_menu'        => true,
         'menu_position'       => 26,
         'menu_icon'           => 'dashicons-email',
-        'capability_type'     => 'post',
-        'hierarchical'        => false,
-        'supports'            => array('title', 'editor', 'custom-fields', 'author'),
+        'capability_type'     => 'mm_lead',
+        'map_meta_cap'        => true,
+        'capabilities' => array(
+            'edit_post' => 'edit_mm_lead',
+            'read_post' => 'read_mm_lead',
+            'delete_post' => 'delete_mm_lead',
+            'edit_posts' => 'edit_mm_leads',
+            'edit_others_posts' => 'edit_others_mm_leads',
+            'publish_posts' => 'publish_mm_leads',
+            'read_private_posts' => 'read_private_mm_leads',
+        ),
         'has_archive'         => false,
         'rewrite'             => false,
         'exclude_from_search' => true,
@@ -40,6 +48,20 @@ function mm_register_lead_cpt() {
     register_post_type('mm_lead', $args);
 }
 add_action('init', 'mm_register_lead_cpt');
+
+function mm_grant_lead_caps() {
+    $role = get_role('administrator');
+    if ($role && !$role->has_cap('edit_mm_leads')) {
+        $role->add_cap('edit_mm_lead');
+        $role->add_cap('read_mm_lead');
+        $role->add_cap('delete_mm_lead');
+        $role->add_cap('edit_mm_leads');
+        $role->add_cap('edit_others_mm_leads');
+        $role->add_cap('publish_mm_leads');
+        $role->add_cap('read_private_mm_leads');
+    }
+}
+add_action('admin_init', 'mm_grant_lead_caps');
 
 /**
  * 2. Custom Columns for Leads
@@ -145,7 +167,7 @@ function mm_contact_settings_page() {
                 </tr>
                 <tr valign="top">
                     <th scope="row">SMTP Password</th>
-                    <td><input type="password" name="mm_smtp_pass" value="<?php echo esc_attr(get_option('mm_smtp_pass')); ?>" class="regular-text" /></td>
+                    <td><input type="password" name="mm_smtp_pass" value="" placeholder="Dejar vacío para conservar actual" class="regular-text" /></td>
                 </tr>
             </table>
             
@@ -154,6 +176,14 @@ function mm_contact_settings_page() {
     </div>
     <?php
 }
+
+// Prevent overwriting SMTP password with empty value if not changed
+add_filter('pre_update_option_mm_smtp_pass', function($new_value, $old_value) {
+    if (empty($new_value)) {
+        return $old_value;
+    }
+    return $new_value;
+}, 10, 2);
 
 /**
  * 4. Apply SMTP Settings
@@ -181,8 +211,18 @@ add_action('phpmailer_init', 'mm_apply_smtp');
  * 5. AJAX Handler: Submit Form
  */
 function mm_ajax_submit_contact() {
-    // 1. Verify Nonce (skipped for simplicity if not localized, but recommended)
-    // if (!check_ajax_referer('mm_contact_nonce', 'nonce', false)) { ... }
+    // 1. Verify Nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'mm_contact_nonce')) {
+        wp_send_json_error(array('message' => 'Error de seguridad. Por favor recarga la página.'));
+    }
+
+    // Rate Limiting by IP
+    $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field($_SERVER['REMOTE_ADDR']) : 'unknown';
+    $transient_name = 'mm_limit_' . md5($ip);
+    if (get_transient($transient_name)) {
+        wp_send_json_error(array('message' => 'Por favor espera unos segundos antes de enviar otro mensaje.'));
+    }
+    set_transient($transient_name, true, 30); // 30 seconds limit
 
     $type  = isset($_POST['type']) ? sanitize_text_field($_POST['type']) : 'email';
     $name  = isset($_POST['name']) ? sanitize_text_field($_POST['name']) : 'Anónimo';

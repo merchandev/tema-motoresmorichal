@@ -24,110 +24,67 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
   <!-- Slider de videos -->
   <div id="custom-slider" class="custom-slider swiper" role="region" aria-label="Slider principal Toyota">
     <div class="swiper-wrapper">
-      <!-- Slide 0: Nuevo video "Trabajamos para ti" -->
-      <div class="swiper-slide cs-slide" data-index="0" data-type="video">
-        <?php 
-          $s1_desk = get_theme_mod('home_video_1_desktop', 'https://mmorichal.com/wp-content/uploads/2026/03/toyota-monagas-maturin-venezuela-actulizacion-de-edificio.mp4');
-          $s1_mob  = get_theme_mod('home_video_1_mobile', $s1_desk);
-          echo tm_render_slide_media($s1_desk, false);
-          echo tm_render_slide_media($s1_mob, true);
-        ?>
-        <div class="cs-slide-content cs-left animate-in">
-          <h2>Visita nuestra sede</h2>
-          <p>Av. Alirio Ugarte Pelayo, Matur&iacute;n, Monagas, Venezuela</p>
-          <a href="https://mmorichal.com/blog/" class="cs-btn-slide">Con&oacute;cenos</a>
-        </div>
-      </div>
-
-      <!-- Slide 1: Bienvenidos Motores Morichal (video 1) -->
-      <div class="swiper-slide cs-slide" data-index="1" data-type="video">
-        <?php 
-          $s2_desk = get_theme_mod('home_video_2_desktop', get_template_directory_uri().'/assets/video/home/video-fortuner.mp4');
-          $s2_mob  = get_theme_mod('home_video_2_mobile', $s2_desk);
-          echo tm_render_slide_media($s2_desk, false);
-          echo tm_render_slide_media($s2_mob, true);
-        ?>
-        <div class="cs-slide-content cs-left animate-in">
-          <h2>Bienvenidos a Motores Morichal</h2>
-          <p>Tu concesionario Oficial Toyota en Matur&iacute;n</p>
-          <a href="#" class="cs-btn-slide">Ver veh&iacute;culos</a>
-        </div>
-      </div>
-
-      <!-- Slide 2: Toyota APP -->
-      <div class="swiper-slide cs-slide" data-index="2" data-type="image">
-        <?php 
-          $s3_desk = get_theme_mod('home_video_3_desktop', get_template_directory_uri().'/assets/img/home/banner-app-desktop.jpg');
-          $s3_mob  = get_theme_mod('home_video_3_mobile', get_template_directory_uri().'/assets/img/home/banner-app-mobile.png');
-          echo tm_render_slide_media($s3_desk, false);
-          echo tm_render_slide_media($s3_mob, true);
-        ?>
-        <div class="cs-slide-content cs-left animate-in">
-          <h2>Toyota APP</h2>
-          <p>Toda la informaci&oacute;n de tu veh&iacute;culo al alcance de tu mano.</p>
-          <a href="https://www.toyota.com.ve/mi-toyota/app-toyota" class="cs-btn-slide" target="_blank">M&aacute;s informaci&oacute;n</a>
-        </div>
-      </div>
-
-      <!-- Slide 3: Yaris Cross (video 2) -->
-      <div class="swiper-slide cs-slide" data-index="3" data-type="video">
-        <?php 
-          $s4_desk = get_theme_mod('home_video_4_desktop', get_template_directory_uri().'/assets/video/home/video-yaris.mp4');
-          $s4_mob  = get_theme_mod('home_video_4_mobile', $s4_desk);
-          echo tm_render_slide_media($s4_desk, false);
-          echo tm_render_slide_media($s4_mob, true);
-        ?>
-        <div class="cs-slide-content cs-left animate-in">
-          <h2>Nuevo Yaris Cross</h2>
-          <p>Nuevo dise&ntilde;o moderno y sofisticado</p>
-          <a href="https://mmorichal.com/vehiculo/toyota-yaris-cross-2025/" class="cs-btn-slide">Explorar</a>
-        </div>
-      </div>
-
-      <!-- Slide 4: Corolla 2025 (video 3) -->
-      <div class="swiper-slide cs-slide" data-index="4" data-type="video">
-        <?php 
-          $s5_desk = get_theme_mod('home_video_5_desktop', get_template_directory_uri().'/assets/video/home/video-corolla.mp4');
-          $s5_mob  = get_theme_mod('home_video_5_mobile', $s5_desk);
-          echo tm_render_slide_media($s5_desk, false);
-          echo tm_render_slide_media($s5_mob, true);
-        ?>
-        <div class="cs-slide-content cs-left animate-in">
-          <h2>Un legado de confianza que se mide en d&eacute;cadas</h2>
-          <a href="https://mmorichal.com/sobre-nosotros/" class="cs-btn-slide">Descubrir</a>
-        </div>
-      </div>
-
-      <!-- Slide 5: AGYA 2025 (video 4) -->
-      <div class="swiper-slide cs-slide" data-index="5" data-type="video">
-        <?php 
-          $s6_desk = get_theme_mod('home_video_6_desktop', 'https://mmorichal.com/wp-content/uploads/2025/09/AGYA-TOYOTA-MONAGAS.mp4');
-          $s6_mob  = get_theme_mod('home_video_6_mobile', $s6_desk);
-          echo tm_render_slide_media($s6_desk, false);
-          echo tm_render_slide_media($s6_mob, true);
-        ?>
-        <div class="cs-slide-content cs-left animate-in">
-          <h2>AGYA 2025</h2>
-          <p>El Toyota Agya est&aacute; dise&ntilde;ado priorizando la ergonom&iacute;a, ofreciendo un amplio espacio interior y una posici&oacute;n de conducci&oacute;n enfocada en comodidad que te permitir&aacute; hacer los viajes que necesites sin sentirte fatigado.</p>
-          <a href="https://mmorichal.com/vehiculo/toyota-agya-2025/" class="cs-btn-slide">Con&oacute;celo</a>
-        </div>
-      </div>
-
-      <!-- Slide 6: Recall Campaign -->
-      <div class="swiper-slide cs-slide" data-index="6" data-type="image">
-        <?php 
-          $s7_desk = get_theme_mod('home_video_7_desktop', get_template_directory_uri().'/assets/img/home/banner-recall-desktop.png');
-          $s7_mob  = get_theme_mod('home_video_7_mobile', get_template_directory_uri().'/assets/img/home/banner-recall-mobile.jpg');
-          echo tm_render_slide_media($s7_desk, false);
-          echo tm_render_slide_media($s7_mob, true);
-        ?>
-        <div class="cs-slide-content cs-left animate-in">
-          <h2>TU VIDA EST&Aacute; EN RIESGO</h2>
-          <p>Verifica si tu Toyota est&aacute; en Campa&ntilde;a.</p>
-          <a href="https://www.toyota.com.ve/mi-toyota/servicios/recall" class="cs-btn-slide" target="_blank">Verifica aqu&iacute;</a>
-        </div>
-      </div>
-
+      <?php
+      $slide_query = new WP_Query(array(
+          'post_type' => 'slide',
+          'posts_per_page' => 20,
+          'orderby' => 'menu_order',
+          'order' => 'ASC',
+      ));
+      
+      $slide_count = 0;
+      
+      if ($slide_query->have_posts()) :
+          while ($slide_query->have_posts()) : $slide_query->the_post();
+              $post_id = get_the_ID();
+              $type = get_post_meta($post_id, 'slide_type', true) ?: 'video';
+              $video_url = get_post_meta($post_id, 'slide_video_url', true);
+              $img_desktop = get_post_meta($post_id, 'slide_img_desktop', true);
+              $img_mobile = get_post_meta($post_id, 'slide_img_mobile', true);
+              if (!$img_mobile) $img_mobile = $img_desktop;
+              
+              $title = get_the_title();
+              $desc = get_post_meta($post_id, 'slide_desc', true);
+              $btn_text = get_post_meta($post_id, 'slide_btn_text', true);
+              $btn_link = get_post_meta($post_id, 'slide_btn_link', true);
+              $btn_target = get_post_meta($post_id, 'slide_btn_target', true) == '1' ? '_blank' : '_self';
+              ?>
+              <div class="swiper-slide cs-slide" data-index="<?php echo $slide_count; ?>" data-type="<?php echo esc_attr($type); ?>">
+                <?php if ($type === 'video' && $video_url) : ?>
+                  <video class="cs-video-bg" muted playsinline preload="metadata" data-src="<?php echo esc_url($video_url); ?>" crossorigin="anonymous"></video>
+                <?php elseif ($type === 'image' && $img_desktop) : ?>
+                  <picture style="width: 100%; height: 100%;">
+                    <source media="(max-width: 768px)" srcset="<?php echo esc_url($img_mobile); ?>">
+                    <img class="cs-video-bg" src="<?php echo esc_url($img_desktop); ?>" alt="<?php echo esc_attr($title); ?>" style="object-fit: cover; width: 100%; height: 100%;">
+                  </picture>
+                <?php endif; ?>
+                
+                <div class="cs-slide-content cs-left animate-in">
+                  <h2><?php echo esc_html($title); ?></h2>
+                  <?php if ($desc) : ?><p><?php echo esc_html($desc); ?></p><?php endif; ?>
+                  <?php if ($btn_text && $btn_link) : ?>
+                    <a href="<?php echo esc_url($btn_link); ?>" class="cs-btn-slide" target="<?php echo esc_attr($btn_target); ?>"><?php echo esc_html($btn_text); ?></a>
+                  <?php endif; ?>
+                </div>
+              </div>
+              <?php
+              $slide_count++;
+          endwhile;
+          wp_reset_postdata();
+      else :
+          // Fallback if no slides exist
+          ?>
+          <div class="swiper-slide cs-slide" data-index="0" data-type="video">
+            <video class="cs-video-bg" muted playsinline preload="metadata" data-src="https://mmorichal.com/wp-content/uploads/2026/03/toyota-monagas-maturin-venezuela-actulizacion-de-edificio.mp4" crossorigin="anonymous"></video>
+            <div class="cs-slide-content cs-left animate-in">
+              <h2>Bienvenidos a Motores Morichal</h2>
+              <p>Por favor, añade un slide desde el panel de control.</p>
+            </div>
+          </div>
+          <?php
+          $slide_count = 1;
+      endif;
+      ?>
     </div>
 
     <!-- Flechas -->
@@ -136,13 +93,9 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
 
     <!-- Barras de progreso -->
     <div class="cs-progress-bars">
-      <div class="cs-progress-bar" data-index="0"><span></span></div>
-      <div class="cs-progress-bar" data-index="1"><span></span></div>
-      <div class="cs-progress-bar" data-index="2"><span></span></div>
-      <div class="cs-progress-bar" data-index="3"><span></span></div>
-      <div class="cs-progress-bar" data-index="4"><span></span></div>
-      <div class="cs-progress-bar" data-index="5"><span></span></div>
-      <div class="cs-progress-bar" data-index="6"><span></span></div>
+      <?php for ($i = 0; $i < $slide_count; $i++) : ?>
+        <div class="cs-progress-bar" data-index="<?php echo $i; ?>"><span></span></div>
+      <?php endfor; ?>
     </div>
   </div>
 

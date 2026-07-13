@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /* Single template for CPT Vehículos - Premium White Design */
 get_header();
 

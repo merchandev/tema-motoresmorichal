@@ -63,6 +63,33 @@ add_action('init', function(){
         'show_in_rest' => true,
     ));
 
+    // CPT Slides Home
+    $labels_slide = array(
+        'name'               => 'Slides Home',
+        'singular_name'      => 'Slide',
+        'menu_name'          => 'Slides Home',
+        'add_new'            => 'Añadir nuevo',
+        'add_new_item'       => 'Añadir nuevo Slide',
+        'edit_item'          => 'Editar Slide',
+        'new_item'           => 'Nuevo Slide',
+        'view_item'          => 'Ver Slide',
+        'search_items'       => 'Buscar Slides',
+        'not_found'          => 'No se encontraron Slides',
+        'not_found_in_trash' => 'No hay Slides en la papelera',
+    );
+    register_post_type('slide', array(
+        'labels' => $labels_slide,
+        'public' => false,
+        'show_ui' => true,
+        'capability_type' => 'post',
+        'map_meta_cap' => true,
+        'menu_position' => 24,
+        'menu_icon' => 'dashicons-images-alt2',
+        'supports' => array('title', 'page-attributes'), // title for heading, page-attributes for menu_order
+        'has_archive' => false,
+        'show_in_rest' => false,
+    ));
+
     register_taxonomy('vehiculo_categoria', array('vehiculo', 'vehiculo_usado'), array(
         'label'        => 'Categorías de vehículo',
         'public'       => true,
@@ -190,4 +217,107 @@ add_action('init', function(){
       toyota_ss_set_featured($ex['image'], $post_id);
     }
   }
+
+    // Default Slides (Auto-migrate)
+    $slides = get_posts(array('post_type' => 'slide', 'posts_per_page' => 1));
+    if (empty($slides)) {
+        $default_slides = array(
+            array(
+                'title' => 'Visita nuestra sede',
+                'desc' => 'Av. Alirio Ugarte Pelayo, Maturín, Monagas, Venezuela',
+                'type' => 'video',
+                'video' => 'https://mmorichal.com/wp-content/uploads/2026/03/toyota-monagas-maturin-venezuela-actulizacion-de-edificio.mp4',
+                'btn_text' => 'Conócenos',
+                'btn_link' => 'https://mmorichal.com/blog/',
+                'btn_target' => '0',
+                'menu_order' => 0
+            ),
+            array(
+                'title' => 'Bienvenidos a Motores Morichal',
+                'desc' => 'Tu concesionario Oficial Toyota en Maturín',
+                'type' => 'video',
+                'video' => get_template_directory_uri().'/assets/video/home/video-fortuner.mp4',
+                'btn_text' => 'Ver vehículos',
+                'btn_link' => '#',
+                'btn_target' => '0',
+                'menu_order' => 1
+            ),
+            array(
+                'title' => 'Toyota APP',
+                'desc' => 'Toda la información de tu vehículo al alcance de tu mano.',
+                'type' => 'image',
+                'img_desk' => get_template_directory_uri().'/assets/img/home/banner-app-desktop.jpg',
+                'img_mob' => get_template_directory_uri().'/assets/img/home/banner-app-mobile.png',
+                'btn_text' => 'Más información',
+                'btn_link' => 'https://www.toyota.com.ve/mi-toyota/app-toyota',
+                'btn_target' => '1',
+                'menu_order' => 2
+            ),
+            array(
+                'title' => 'Nuevo Yaris Cross',
+                'desc' => 'Nuevo diseño moderno y sofisticado',
+                'type' => 'video',
+                'video' => get_template_directory_uri().'/assets/video/home/video-yaris.mp4',
+                'btn_text' => 'Explorar',
+                'btn_link' => 'https://mmorichal.com/vehiculo/toyota-yaris-cross-2025/',
+                'btn_target' => '0',
+                'menu_order' => 3
+            ),
+            array(
+                'title' => 'Un legado de confianza que se mide en décadas',
+                'desc' => '',
+                'type' => 'video',
+                'video' => get_template_directory_uri().'/assets/video/home/video-corolla.mp4',
+                'btn_text' => 'Descubrir',
+                'btn_link' => 'https://mmorichal.com/sobre-nosotros/',
+                'btn_target' => '0',
+                'menu_order' => 4
+            ),
+            array(
+                'title' => 'AGYA 2025',
+                'desc' => 'El Toyota Agya está diseñado priorizando la ergonomía, ofreciendo un amplio espacio interior y una posición de conducción enfocada en comodidad que te permitirá hacer los viajes que necesites sin sentirte fatigado.',
+                'type' => 'video',
+                'video' => 'https://mmorichal.com/wp-content/uploads/2025/09/AGYA-TOYOTA-MONAGAS.mp4',
+                'btn_text' => 'Conócelo',
+                'btn_link' => 'https://mmorichal.com/vehiculo/toyota-agya-2025/',
+                'btn_target' => '0',
+                'menu_order' => 5
+            ),
+            array(
+                'title' => 'TU VIDA ESTÁ EN RIESGO',
+                'desc' => 'Verifica si tu Toyota está en Campaña.',
+                'type' => 'image',
+                'img_desk' => get_template_directory_uri().'/assets/img/home/banner-recall-desktop.png',
+                'img_mob' => get_template_directory_uri().'/assets/img/home/banner-recall-mobile.jpg',
+                'btn_text' => 'Verifica aquí',
+                'btn_link' => 'https://www.toyota.com.ve/mi-toyota/servicios/recall',
+                'btn_target' => '1',
+                'menu_order' => 6
+            ),
+        );
+        
+        foreach ($default_slides as $s) {
+            $post_id = wp_insert_post(array(
+                'post_title' => $s['title'],
+                'post_status' => 'publish',
+                'post_type' => 'slide',
+                'menu_order' => $s['menu_order']
+            ));
+            
+            if ($post_id) {
+                update_post_meta($post_id, 'slide_type', $s['type']);
+                update_post_meta($post_id, 'slide_desc', $s['desc']);
+                update_post_meta($post_id, 'slide_btn_text', $s['btn_text']);
+                update_post_meta($post_id, 'slide_btn_link', $s['btn_link']);
+                update_post_meta($post_id, 'slide_btn_target', $s['btn_target']);
+                
+                if ($s['type'] === 'video') {
+                    update_post_meta($post_id, 'slide_video_url', $s['video']);
+                } else {
+                    update_post_meta($post_id, 'slide_img_desktop', $s['img_desk']);
+                    update_post_meta($post_id, 'slide_img_mobile', $s['img_mob']);
+                }
+            }
+        }
+    }
 });

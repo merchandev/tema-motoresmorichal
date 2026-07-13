@@ -415,6 +415,160 @@ add_action('save_post', function($post_id){
     }
 });
 
+// ---------------------------------------------
+// ADMIN: Metabox for Slides Home
+// ---------------------------------------------
+add_action('add_meta_boxes', function() {
+    add_meta_box('toyota_slide_data', 'Configuración del Slide', 'toyota_render_slide_data', 'slide', 'normal', 'high');
+});
+
+function toyota_render_slide_data($post) {
+    wp_nonce_field('toyota_slide_data_save', 'toyota_slide_data_nonce');
+    
+    $slide_type = get_post_meta($post->ID, 'slide_type', true) ?: 'video';
+    $slide_video_url = get_post_meta($post->ID, 'slide_video_url', true);
+    $slide_img_desktop = get_post_meta($post->ID, 'slide_img_desktop', true);
+    $slide_img_mobile = get_post_meta($post->ID, 'slide_img_mobile', true);
+    $slide_desc = get_post_meta($post->ID, 'slide_desc', true);
+    $slide_btn_text = get_post_meta($post->ID, 'slide_btn_text', true);
+    $slide_btn_link = get_post_meta($post->ID, 'slide_btn_link', true);
+    $slide_btn_target = get_post_meta($post->ID, 'slide_btn_target', true);
+    ?>
+    <style>
+        .tsl-row { margin-bottom: 15px; }
+        .tsl-row label { display: block; font-weight: 600; margin-bottom: 5px; }
+        .tsl-row input[type="text"], .tsl-row textarea, .tsl-row select { width: 100%; max-width: 600px; }
+        .tsl-media-flex { display: flex; gap: 10px; align-items: center; max-width: 600px; }
+        .tsl-media-flex input[type="text"] { flex: 1; }
+        .tsl-section { background: #f9f9f9; padding: 15px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 15px; }
+    </style>
+    
+    <div class="tsl-row">
+        <label>Tipo de Slide</label>
+        <select name="slide_type" id="slide_type">
+            <option value="video" <?php selected($slide_type, 'video'); ?>>Video</option>
+            <option value="image" <?php selected($slide_type, 'image'); ?>>Imagen</option>
+        </select>
+    </div>
+
+    <div id="tsl-video-section" class="tsl-section" style="<?php echo $slide_type === 'video' ? 'display:block;' : 'display:none;'; ?>">
+        <div class="tsl-row">
+            <label>Video MP4 (Fondo)</label>
+            <div class="tsl-media-flex">
+                <input type="text" name="slide_video_url" id="slide_video_url" value="<?php echo esc_attr($slide_video_url); ?>">
+                <button type="button" class="button tsl-upload-btn" data-target="#slide_video_url" data-type="video">Seleccionar Video</button>
+            </div>
+            <p class="description">Selecciona un video en formato MP4 (optimizado para web).</p>
+        </div>
+    </div>
+
+    <div id="tsl-image-section" class="tsl-section" style="<?php echo $slide_type === 'image' ? 'display:block;' : 'display:none;'; ?>">
+        <div class="tsl-row">
+            <label>Imagen de Fondo (Escritorio)</label>
+            <div class="tsl-media-flex">
+                <input type="text" name="slide_img_desktop" id="slide_img_desktop" value="<?php echo esc_attr($slide_img_desktop); ?>">
+                <button type="button" class="button tsl-upload-btn" data-target="#slide_img_desktop" data-type="image">Seleccionar Imagen</button>
+            </div>
+            <p class="description">Recomendado: 1920x1080px (horizontal).</p>
+        </div>
+        <div class="tsl-row">
+            <label>Imagen de Fondo (Móvil) - Opcional</label>
+            <div class="tsl-media-flex">
+                <input type="text" name="slide_img_mobile" id="slide_img_mobile" value="<?php echo esc_attr($slide_img_mobile); ?>">
+                <button type="button" class="button tsl-upload-btn" data-target="#slide_img_mobile" data-type="image">Seleccionar Imagen</button>
+            </div>
+            <p class="description">Si se deja vacío, se usará la misma de escritorio. Recomendado: 1080x1920px (vertical).</p>
+        </div>
+    </div>
+
+    <div class="tsl-row">
+        <label>Descripción / Párrafo</label>
+        <textarea name="slide_desc" rows="3"><?php echo esc_textarea($slide_desc); ?></textarea>
+    </div>
+    
+    <div class="tsl-row">
+        <label>Texto del Botón (Opcional)</label>
+        <input type="text" name="slide_btn_text" value="<?php echo esc_attr($slide_btn_text); ?>" placeholder="Ej: Conócenos">
+    </div>
+
+    <div class="tsl-row">
+        <label>Enlace del Botón (Opcional)</label>
+        <input type="text" name="slide_btn_link" value="<?php echo esc_attr($slide_btn_link); ?>" placeholder="https://...">
+    </div>
+
+    <div class="tsl-row">
+        <label>
+            <input type="checkbox" name="slide_btn_target" value="1" <?php checked($slide_btn_target, '1'); ?>>
+            Abrir enlace en una nueva pestaña
+        </label>
+    </div>
+
+    <script>
+    jQuery(document).ready(function($){
+        // Toggle sections based on type
+        $('#slide_type').on('change', function(){
+            if ($(this).val() === 'video') {
+                $('#tsl-video-section').show();
+                $('#tsl-image-section').hide();
+            } else {
+                $('#tsl-video-section').hide();
+                $('#tsl-image-section').show();
+            }
+        });
+
+        // Media Uploader
+        $('.tsl-upload-btn').on('click', function(e){
+            e.preventDefault();
+            var btn = $(this);
+            var target = btn.data('target');
+            var type = btn.data('type');
+            
+            var frame = wp.media({
+                title: 'Seleccionar Medio',
+                button: { text: 'Usar este medio' },
+                multiple: false,
+                library: { type: type }
+            });
+            
+            frame.on('select', function(){
+                var attachment = frame.state().get('selection').first().toJSON();
+                $(target).val(attachment.url);
+            });
+            
+            frame.open();
+        });
+    });
+    </script>
+    <?php
+}
+
+// Save Meta
+add_action('save_post', function($post_id){
+    if (!isset($_POST['toyota_slide_data_nonce']) || !wp_verify_nonce($_POST['toyota_slide_data_nonce'], 'toyota_slide_data_save')) return;
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+    if (!current_user_can('edit_post', $post_id)) return;
+    if (get_post_type($post_id) !== 'slide') return;
+
+    $fields = array(
+        'slide_type', 
+        'slide_video_url', 
+        'slide_img_desktop', 
+        'slide_img_mobile', 
+        'slide_desc', 
+        'slide_btn_text', 
+        'slide_btn_link'
+    );
+    
+    foreach($fields as $f){
+        if (isset($_POST[$f])) {
+            update_post_meta($post_id, $f, sanitize_text_field($_POST[$f]));
+        }
+    }
+    
+    $target = isset($_POST['slide_btn_target']) ? '1' : '0';
+    update_post_meta($post_id, 'slide_btn_target', $target);
+});
+
 // Enqueue Admin Scripts for Color Picker and Media
 add_action('admin_enqueue_scripts', function($hook){
     if ('post.php' != $hook && 'post-new.php' != $hook) return;
@@ -422,6 +576,9 @@ add_action('admin_enqueue_scripts', function($hook){
     if ('vehiculo' == $post_type || 'vehiculo_usado' == $post_type) {
         wp_enqueue_style('wp-color-picker');
         wp_enqueue_script('wp-color-picker');
+        wp_enqueue_media();
+    }
+    if ('slide' == $post_type) {
         wp_enqueue_media();
     }
 });

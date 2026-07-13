@@ -4,7 +4,7 @@ Theme URI: https://arturomerchan.com/temas
 Author: Merchan.Dev & Espressivo Venezuela
 Author URI: https://arturomerchan.com
 Description: Tema WordPress moderno para Toyota Monagas, desarrollado por Merchan.Dev & Espressivo Venezuela.
-Version: 1.1.6
+Version: 1.2.0
 Text Domain: toyota-monagas
 */
 
@@ -6790,6 +6790,7 @@ footer,
   .desktop-media {
     display: none !important;
   }
+
   .mobile-media {
     display: block !important;
   }

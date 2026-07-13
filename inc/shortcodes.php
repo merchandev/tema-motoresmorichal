@@ -70,13 +70,12 @@ add_shortcode('formulario_mmorichal', function () {
         formData.append('model', modelo);
         formData.append('message', "Servicio: " + servicio + "\n\n" + mensajeLibre);
 
-        var ajaxUrl = (typeof mm_ajax !== 'undefined' && mm_ajax.ajaxurl) ? mm_ajax.ajaxurl : '/wp-admin/admin-ajax.php';
-
-        if (navigator.sendBeacon) {
-            navigator.sendBeacon(ajaxUrl, formData);
-        } else {
-            fetch(ajaxUrl, { method: 'POST', body: formData });
+        if (typeof mm_ajax !== 'undefined' && mm_ajax.nonce) {
+            formData.append('nonce', mm_ajax.nonce);
         }
+
+        var ajaxUrl = (typeof mm_ajax !== 'undefined' && mm_ajax.ajaxurl) ? mm_ajax.ajaxurl : '/wp-admin/admin-ajax.php';
+        fetch(ajaxUrl, { method: 'POST', body: formData });
 
         var mensaje = 'Hola Motores Morichal, me gustaría recibir información:%0A' +
                       '• Nombre: ' + encodeURIComponent(nombre) + '%0A' +
@@ -150,13 +149,12 @@ add_shortcode('formulario_disponibilidad', function () {
         formData.append('model', vehiculo);
         formData.append('message', mensajeLibre);
 
-        var ajaxUrl = (typeof mm_ajax !== 'undefined' && mm_ajax.ajaxurl) ? mm_ajax.ajaxurl : '/wp-admin/admin-ajax.php';
-
-        if (navigator.sendBeacon) {
-            navigator.sendBeacon(ajaxUrl, formData);
-        } else {
-            fetch(ajaxUrl, { method: 'POST', body: formData });
+        if (typeof mm_ajax !== 'undefined' && mm_ajax.nonce) {
+            formData.append('nonce', mm_ajax.nonce);
         }
+
+        var ajaxUrl = (typeof mm_ajax !== 'undefined' && mm_ajax.ajaxurl) ? mm_ajax.ajaxurl : '/wp-admin/admin-ajax.php';
+        fetch(ajaxUrl, { method: 'POST', body: formData });
 
         var mensaje = 'Hola Motores Morichal, quiero consultar disponibilidad:%0A' +
                       '• Nombre: ' + encodeURIComponent(nombre) + '%0A' +

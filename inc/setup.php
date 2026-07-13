@@ -145,11 +145,14 @@ function toyota_monagas_scripts() {
         }
     }
 
-    // Contact System Script
-    wp_enqueue_script('mm-contact-js', get_template_directory_uri() . '/js/contact-form.js', array(), '1.0', true);
-    wp_localize_script('mm-contact-js', 'mm_ajax', array(
-        'ajaxurl' => admin_url('admin-ajax.php')
-    ));
+    // Contact System Script (Load only when needed)
+    if (is_page_template('contactanos.php') || is_page('contactanos') || is_front_page() || has_shortcode(get_post()->post_content, 'mm_contact_form')) {
+        wp_enqueue_script('mm-contact-js', get_template_directory_uri() . '/js/contact-form.js', array(), '1.0', true);
+        wp_localize_script('mm-contact-js', 'mm_ajax', array(
+            'ajaxurl' => admin_url('admin-ajax.php'),
+            'nonce'   => wp_create_nonce('mm_contact_nonce')
+        ));
+    }
 }
 add_action('wp_enqueue_scripts', 'toyota_monagas_scripts');
 
