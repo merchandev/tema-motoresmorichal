@@ -1,21 +1,36 @@
 {
   "name": "toyota-monagas",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.2.0",
+  "description": "Frontend build and release tooling for the Toyota Monagas WordPress theme.",
   "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0",
+    "npm": ">=9.0.0"
+  },
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "typecheck": "tsc --noEmit",
+    "lint:css": "node scripts/check-css.mjs",
+    "lint:js": "node scripts/check-js.mjs",
+    "lint:php": "node scripts/php-lint.mjs",
+    "lint:versions": "node scripts/check-versions.mjs",
+    "audit:dependencies": "npm audit --audit-level=moderate",
+    "lint": "npm run lint:css && npm run lint:js && npm run lint:php && npm run lint:versions && npm run typecheck",
+    "build": "npm run typecheck && node scripts/build.mjs && node scripts/verify-dist.mjs",
+    "verify:dist": "node scripts/verify-dist.mjs",
+    "verify:release": "node scripts/verify-release.mjs",
+    "package": "npm run qa && node scripts/package-theme.mjs && npm run verify:release",
+    "qa": "npm run lint && npm run build"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.10",
-    "typescript": "^5.5.4",
-    "vite": "^5.4.0"
+    "autoprefixer": "10.4.20",
+    "postcss": "8.5.26",
+    "tailwindcss": "3.4.10",
+    "typescript": "5.5.4",
+    "vite": "8.2.2"
   },
   "dependencies": {
-    "swiper": "^11.1.4"
+    "swiper": "14.1.0"
   }
 }
-

@@ -5,6 +5,7 @@ Template Name: Vehiculos
 get_header(); ?>
 
 <main id="site-main" class="vehiculo-premium-white">
+  <h1 class="sr-only">Vehículos Toyota nuevos</h1>
   <?php
     // Destacado principal (vehículo nuevo - ID 91 logic)
     $highlight_q = new WP_Query(array(
@@ -38,7 +39,7 @@ get_header(); ?>
         $hero_cols = is_array($tmp) ? $tmp : array();
       }
       if (!$hero_img && !empty($hero_cols[0]['img'])) $hero_img = $hero_cols[0]['img'];
-      if (!$hero_img) $hero_img = 'https://picsum.photos/seed/hero/1200/700';
+      if (!$hero_img) $hero_img = toyota_monagas_placeholder_image_url();
     }
   ?>
 
@@ -46,11 +47,11 @@ get_header(); ?>
   <section class="veh-hero" style="background-image: linear-gradient(120deg, rgba(0,0,0,0.55), rgba(0,0,0,0.35)), url('<?php echo esc_url($hero_img); ?>');">
     <div class="container veh-hero__inner">
       <div class="veh-hero__badge">Línea Toyota</div>
-      <h1 class="veh-hero__title"><?php echo esc_html($hero_title); ?></h1>
+      <h2 class="veh-hero__title"><?php echo esc_html($hero_title); ?></h2>
       <?php if($hero_sub): ?><p class="veh-hero__subtitle"><?php echo esc_html($hero_sub); ?></p><?php endif; ?>
       <div class="veh-hero__cta">
         <a class="veh-cta-primary" href="<?php echo esc_url(get_permalink($pid)); ?>">Descubrir modelo</a>
-        <?php if($hero_legal): ?><a class="veh-cta-link" href="<?php echo esc_url($hero_legal); ?>" target="_blank" rel="noopener">Texto legal</a><?php endif; ?>
+        <?php if($hero_legal): ?><a class="veh-cta-link" href="<?php echo esc_url($hero_legal); ?>" target="_blank" rel="noopener noreferrer">Texto legal</a><?php endif; ?>
       </div>
     </div>
   </section>
@@ -62,7 +63,7 @@ get_header(); ?>
       <header class="veh-section-head">
         <div>
           <span class="veh-tag">Modelos</span>
-          <h3>Explora la línea Toyota</h3>
+          <h2>Explora la línea Toyota</h2>
           <p>Camionetas, pasajeros, pick ups y comerciales listos para tu pr&oacute;xima ruta.</p>
         </div>
         <div class="veh-filter-wrap">
@@ -75,18 +76,19 @@ get_header(); ?>
             'crossovers' => array('label'=>'Pick Ups','slug'=>'pick-ups'),
             'electrified' => array('label'=>'Comercial','slug'=>'comercial'),
           );
-          $active_cat = isset($_GET['cat']) ? sanitize_text_field($_GET['cat']) : 'all';
+          $active_cat = sanitize_key(toyota_monagas_request_scalar($_GET, 'cat', 'all'));
+          if (!isset($filters[$active_cat])) $active_cat = 'all';
           foreach($filters as $key=>$f){
             $url = $key === 'all' ? $base_url : add_query_arg('cat', $key, $base_url);
             $active = ($key === $active_cat) ? ' is-active' : '';
-            $aria = ($key === $active_cat) ? 'true' : 'false';
-            echo '<a class="veh-filter'.esc_attr($active).'" href="'.esc_url($url).'" role="button" aria-pressed="'.esc_attr($aria).'">'.esc_html($f['label']).'</a>';
+            $aria_current = ($key === $active_cat) ? ' aria-current="page"' : '';
+            echo '<a class="veh-filter'.esc_attr($active).'" href="'.esc_url($url).'"'.$aria_current.'>'.esc_html($f['label']).'</a>';
           }
           ?>
         </div>
       </header>
 
-      <div class="veh-grid" role="list">
+      <div class="veh-grid" role="list" aria-live="polite">
         <?php
         $cat_map = array(
           'Camioneta' => 'cars',
@@ -120,7 +122,7 @@ get_header(); ?>
               $cols = get_post_meta($pid, 'veh_colores', true);
               if (!empty($cols) && is_array($cols) && !empty($cols[0]['img'])) $thumb = esc_url($cols[0]['img']);
             }
-            if (!$thumb) $thumb = 'https://picsum.photos/seed/'.intval($pid).'/800/600';
+            if (!$thumb) $thumb = toyota_monagas_placeholder_image_url();
             $terms = wp_get_post_terms($pid, 'vehiculo_categoria', array('fields'=>'names'));
             $term_name = (!empty($terms) && is_array($terms)) ? $terms[0] : '';
             $data_cat = isset($cat_map[$term_name]) ? $cat_map[$term_name] : 'cars';
@@ -136,7 +138,7 @@ get_header(); ?>
           <div class="veh-card__body">
             <div class="veh-card__top">
               <span class="veh-card__year"><?php echo esc_html($sub); ?></span>
-              <h4><?php echo esc_html($title); ?></h4>
+              <h3><?php echo esc_html($title); ?></h3>
             </div>
             <p class="veh-card__excerpt"><?php echo wp_kses_post( wp_trim_words( $content, 20, '…' ) ); ?></p>
             <div class="veh-card__meta">
@@ -154,52 +156,33 @@ get_header(); ?>
         <?php endif; ?>
       </div>
 
-      <?php if ($q->max_num_pages > 1) : ?>
+      <?php if ($q->max_num_pages > $paged) : ?>
       <div class="veh-pagination">
         <?php
           $next_page = $paged + 1;
           $max_page = $q->max_num_pages;
+          $fallback_url = add_query_arg('paged', $next_page, get_permalink(get_queried_object_id()));
+          if ($active_cat !== 'all') {
+            $fallback_url = add_query_arg('cat', $active_cat, $fallback_url);
+          }
         ?>
-        <button class="veh-cta-secondary veh-loadmore" id="toyota-loadmore-nuevos"
+        <a class="veh-cta-secondary veh-loadmore" id="toyota-loadmore-nuevos"
+          href="<?php echo esc_url($fallback_url); ?>"
+          data-action="toyota_load_more_vehiculos"
+          data-target=".veh-grid"
+          data-ajax-url="<?php echo esc_url(admin_url('admin-ajax.php')); ?>"
+          data-nonce="<?php echo esc_attr(wp_create_nonce('toyota_front_nonce')); ?>"
           data-page="<?php echo esc_attr($next_page); ?>"
           data-max="<?php echo esc_attr($max_page); ?>"
           data-cat="<?php echo esc_attr($active_cat); ?>"
-          aria-label="Cargar m&aacute;s veh&iacute;culos">
+          aria-label="Cargar m&aacute;s veh&iacute;culos" aria-live="polite">
           Cargar m&aacute;s
-        </button>
+        </a>
       </div>
       <?php endif; ?>
     </div>
   </section>
 
-  <?php if ($highlight): ?>
-  <script>
-    (function(){
-      var buttons = Array.prototype.slice.call(document.querySelectorAll('.vp-color-btn'));
-      var imgEl = document.getElementById('veh-highlight-img');
-      var nameEl = document.getElementById('vp-color-name');
-      if (!buttons.length || !imgEl) return;
-      buttons.forEach(function(btn){
-        btn.addEventListener('click', function(){
-          buttons.forEach(function(b){ b.classList.remove('active','is-active'); b.setAttribute('aria-pressed','false'); });
-          btn.classList.add('active','is-active');
-          btn.setAttribute('aria-pressed','true');
-          if (nameEl && btn.dataset.name) nameEl.textContent = btn.dataset.name;
-          if (btn.dataset.img) {
-            imgEl.classList.add('is-fading');
-            var finish = function(){ imgEl.classList.remove('is-fading'); };
-            imgEl.addEventListener('load', finish, { once:true });
-            imgEl.addEventListener('error', finish, { once:true });
-            if (imgEl.src !== btn.dataset.img) imgEl.src = btn.dataset.img;
-            else finish();
-          }
-        });
-      });
-      var initial = document.querySelector('.vp-color-btn.active, .vp-color-btn.is-active') || buttons[0];
-      if (initial) initial.click();
-    })();
-  </script>
-  <?php endif; ?>
 </main>
 
 <?php get_footer(); ?>

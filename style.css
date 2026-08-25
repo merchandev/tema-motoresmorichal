@@ -1,10 +1,12 @@
 /*
 Theme Name: Toyota Monagas By Merchan.Dev & Espressivo Venezuela
-Theme URI: https://arturomerchan.com/temas
+Theme URI: https://github.com/merchandev
 Author: Merchan.Dev & Espressivo Venezuela
-Author URI: https://arturomerchan.com
+Author URI: https://github.com/merchandev
 Description: Tema WordPress moderno para Toyota Monagas, desarrollado por Merchan.Dev & Espressivo Venezuela.
 Version: 1.2.0
+Requires at least: 6.0
+Requires PHP: 7.4
 Text Domain: toyota-monagas
 */
 
@@ -1158,17 +1160,6 @@ body.admin-bar .site-header {
 @media (max-width: 782px) {
   body.admin-bar .site-header {
     top: 46px;
-  }
-}
-
-/* Evitar doble espacio entre header y contenido al estar logueado */
-body.admin-bar main#site-main {
-  padding-top: 0 !important;
-}
-
-@media (max-width: 782px) {
-  body.admin-bar main#site-main {
-    padding-top: 0 !important;
   }
 }
 
@@ -2873,7 +2864,7 @@ button:hover,
   display: block;
 }
 
-.focus-content h3 {
+.focus-content h2 {
   color: #fff;
   margin: .25rem 0 .75rem;
   font-size: clamp(1.6rem, 2.4vw, 2rem);
@@ -2977,7 +2968,7 @@ button:hover,
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
 }
 
-.fullstory-card h3 {
+.fullstory-card h2 {
   color: #fff;
   margin: .4rem 0 .9rem;
   font-size: clamp(1.6rem, 2.3vw, 2rem);
@@ -4250,7 +4241,7 @@ main.vehiculo-premium-white,
   margin-bottom: 26px;
 }
 
-.veh-section-head h3 {
+.veh-section-head h2 {
   margin: 4px 0 6px;
   font-size: 1.9rem;
 }
@@ -6286,19 +6277,10 @@ main {
    GLOBAL CONTENT SPACING & LAYOUT RESET (FINAL)
    ========================================================================== 
    Justification: 
-   1. Removes default WordPress Admin margins (32px).
-   2. Resets Elementor internal container gaps.
-   3. Forcefully aligns header and content for pixel-perfect seamlessness.
-   4. Targets specific page templates (Vehiculos) to prevent white bars.
+   1. Resets Elementor internal container gaps.
+   2. Aligns header and content consistently.
+   3. Targets specific page templates (Vehiculos) to prevent white bars.
    ========================================================================== */
-
-/* 1. ROOT LEVEL RESET (Crucial for "Above Header" Gaps) */
-html,
-body {
-  margin-top: 0 !important;
-  padding-top: 0 !important;
-  --wp-admin--admin-bar--height: 0px !important;
-}
 
 /* 2. MAIN CONTAINER RESET */
 #page,
@@ -6329,15 +6311,6 @@ body.archive #site-main {
   padding-bottom: 0 !important;
 }
 
-/* 4. ADMIN BAR SPECIFIC OVERRIDE */
-html {
-  margin-top: 0 !important;
-}
-
-* html body {
-  margin-top: 0 !important;
-}
-
 /* 5. REMOVE "GHOST" PARAGRAPHS */
 header+p:empty,
 .elementor-location-header+p:empty {
@@ -6366,21 +6339,9 @@ body.page .entry-content {
   min-height: 0 !important;
 }
 
-/* Asegurar que el body no tenga margen superior */
-body,
-html {
-  margin-top: 0 !important;
-  padding-top: 0 !important;
-}
-
 /* Ajustar header principal */
 .site-header {
   margin-top: 0 !important;
-}
-
-/* Eliminar cualquier espacio del admin bar si estás logeado */
-.admin-bar .top-bar {
-  margin-top: -32px;
 }
 
 /* =========================================

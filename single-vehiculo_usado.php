@@ -16,7 +16,7 @@ if (!is_array($cols)) {
     $tmp = json_decode((string)$cols,true); 
     $cols = is_array($tmp)?$tmp:array(); 
 }
-$cols = array_values($cols);
+$cols = array_values(array_filter($cols, 'is_array'));
 
 // Helper to resolve full-resolution image URL
 $mm_full_img = function($src){
@@ -49,7 +49,7 @@ if (empty($first_img)) {
 }
 $hero_img = $featured_img ?: $first_img;
 if (empty($hero_img)) {
-    $hero_img = 'https://picsum.photos/seed/vehiculo-usado-' . intval($post_id) . '/1400/800';
+    $hero_img = toyota_monagas_placeholder_image_url();
 }
 $viewer_img = $first_img ?: $hero_img;
 
@@ -91,8 +91,9 @@ if (!empty($gallery_raw) && is_array($gallery_raw)) {
 }
 
 // WhatsApp Link
-$wa = apply_filters('mmorichal_whatsapp_number','584249090679');
+$wa = toyota_monagas_whatsapp_number();
 $wa_base = 'https://wa.me/'.rawurlencode($wa).'?text=';
+$wa_fallback = $wa_base . rawurlencode('Hola, quisiera consultar disponibilidad del vehículo usado: ' . get_the_title($post_id) . ($ver ? ' (' . $ver . ')' : '') . '.');
 
 // Año y categoría para subtitle
 $veh_terms = wp_get_post_terms($post_id, 'vehiculo_categoria', array('fields' => 'names'));
@@ -107,6 +108,7 @@ if (empty($veh_year)) {
 }
 $subtitle_parts = array_filter(array($veh_year, $veh_cat));
 $subtitle_final = !empty($subtitle_parts) ? implode(' · ', $subtitle_parts) : $sub;
+$hero_lead = trim(wp_strip_all_tags(get_the_excerpt($post_id)));
 ?>
 
 <main id="site-main" class="vehiculo-premium-white">
@@ -114,15 +116,15 @@ $subtitle_final = !empty($subtitle_parts) ? implode(' · ', $subtitle_parts) : $
   <!-- 1. HERO SLIDE -->
   <section class="vp-hero">
     <div class="vp-hero-bg">
-        <img src="<?php echo esc_url($hero_img); ?>" alt="Hero <?php the_title(); ?>" class="vp-hero-img" id="hero-main-img">
+        <img src="<?php echo esc_url($hero_img); ?>" alt="<?php echo esc_attr('Vista principal de ' . get_the_title($post_id)); ?>" class="vp-hero-img" id="hero-main-img" fetchpriority="high" decoding="async">
     </div>
     <div class="vp-hero-overlay">
         <div class="container vp-hero__content">
           <div class="veh-hero__eyebrow">
             <?php if($subtitle_final): ?><p class="veh-hero__meta vp-subtitle"><?php echo esc_html($subtitle_final); ?></p><?php endif; ?>
           </div>
-          <h1 class="vp-title"><?php the_title(); ?> <span style="color: #c41e3a; font-size: 0.75em; font-weight: 600;">(Usado)</span></h1>
-          <h2 class="vp-heading veh-hero__lead">Vehículo de segunda mano en excelente estado.</h2>
+          <h1 class="vp-title"><?php the_title(); ?> <span class="vp-used-label">(Usado)</span></h1>
+          <?php if ($hero_lead) : ?><p class="vp-heading veh-hero__lead"><?php echo esc_html(wp_trim_words($hero_lead, 24, '…')); ?></p><?php endif; ?>
         </div>
     </div>
   </section>
@@ -132,7 +134,7 @@ $subtitle_final = !empty($subtitle_parts) ? implode(' · ', $subtitle_parts) : $
     <div class="container">
       <div class="vp-viewer vp-viewer-full">
         <figure class="vp-car-stage">
-          <img src="<?php echo esc_url($viewer_img); ?>" alt="Vehicle View" id="config-car-img" class="vp-car-img animate-fade">
+          <img src="<?php echo esc_url($viewer_img); ?>" alt="<?php echo esc_attr('Vista de ' . get_the_title($post_id)); ?>" id="config-car-img" class="vp-car-img animate-fade" loading="lazy" decoding="async">
         </figure>
         
         <!-- Color Dots (Toyota US Style) -->
@@ -141,7 +143,8 @@ $subtitle_final = !empty($subtitle_parts) ? implode(' · ', $subtitle_parts) : $
           <div class="vp-color-label">Elegir color</div>
           <div class="vp-color-buttons">
                 <?php foreach($cols as $i=>$c):
-                    $hex = isset($c['hex']) && $c['hex'] ? $c['hex'] : '#888';
+                    $hex = isset($c['hex']) ? sanitize_hex_color($c['hex']) : '';
+                    if (!$hex) $hex = '#888888';
                     $c_img = '';
                     if (!empty($c['img_id'])) {
                       $c_img = $mm_full_img($c['img_id']);
@@ -154,7 +157,7 @@ $subtitle_final = !empty($subtitle_parts) ? implode(' · ', $subtitle_parts) : $
                 ?>
             <button 
               class="vp-color-btn <?php echo $is_active; ?>" 
-              data-img="<?php echo esc_attr($c_img); ?>" 
+              data-img="<?php echo esc_url($c_img); ?>"
               data-name="<?php echo esc_attr($c_name); ?>"
               aria-pressed="<?php echo esc_attr($aria_pressed); ?>"
               aria-label="<?php echo esc_attr($c_name); ?>"
@@ -164,15 +167,14 @@ $subtitle_final = !empty($subtitle_parts) ? implode(' · ', $subtitle_parts) : $
             </button>
             <?php endforeach; ?>
           </div>
-          <div class="vp-color-name" id="vp-color-name"><?php echo esc_html($first_name); ?></div>
+          <div class="vp-color-name" id="vp-color-name" aria-live="polite"><?php echo esc_html($first_name); ?></div>
         </div>
         <?php endif; ?>
       </div>
     </div>
   </section>
 
-  <?php if($fich): ?>
-  <!-- 4. TECHNICAL SHEET DOWNLOAD -->
+  <!-- 4. CONTACT AND OPTIONAL TECHNICAL SHEET -->
   <section class="vp-ficha">
     <div class="container">
       <div class="vp-ficha-card">
@@ -187,22 +189,23 @@ $subtitle_final = !empty($subtitle_parts) ? implode(' · ', $subtitle_parts) : $
             <?php endif; ?>
           </div>
           
-          <a href="#" class="vp-btn-primary" id="vp-cotizar-btn"
+          <a href="<?php echo esc_url($wa_fallback); ?>" class="vp-btn-primary" id="vp-cotizar-btn" target="_blank" rel="noopener noreferrer"
              data-wa="<?php echo esc_attr($wa_base); ?>" 
              data-modelo="<?php echo esc_attr(get_the_title()); ?>" 
              data-version="<?php echo esc_attr($ver); ?>"
              data-usado="true">
              Consultar Disponibilidad
           </a>
-          <a class="vp-btn-secondary" href="<?php echo esc_url($fich); ?>" download target="_blank" rel="noopener">
-            Descargar ficha técnica
-          </a>
+          <?php if ($fich) : ?>
+            <a class="vp-btn-secondary" href="<?php echo esc_url($fich); ?>" download target="_blank" rel="noopener noreferrer">
+              Descargar ficha técnica
+            </a>
+          <?php endif; ?>
         </div>
-        <p class="vp-ficha-note">Consulta las especificaciones completas de <?php the_title(); ?> en la ficha oficial. Descárgala ahora.</p>
+        <?php if ($fich) : ?><p class="vp-ficha-note">Consulta las especificaciones completas de <?php the_title(); ?> en la ficha oficial.</p><?php endif; ?>
       </div>
     </div>
   </section>
-  <?php endif; ?>
 
   <?php if(!empty($gallery_items)): ?>
   <section class="veh-gallery">
@@ -210,7 +213,7 @@ $subtitle_final = !empty($subtitle_parts) ? implode(' · ', $subtitle_parts) : $
       <header class="veh-section-head">
         <div>
           <span class="veh-tag">Galería</span>
-          <h3>Fotos de <?php the_title(); ?></h3>
+          <h2>Fotos de <?php the_title(); ?></h2>
           <p>Explora más ángulos y detalles del modelo usado.</p>
         </div>
       </header>
@@ -218,17 +221,19 @@ $subtitle_final = !empty($subtitle_parts) ? implode(' · ', $subtitle_parts) : $
         <?php foreach($gallery_items as $i=>$img):
           $alt = !empty($img['alt']) ? $img['alt'] : (get_the_title() . ' foto ' . ($i+1));
         ?>
-        <div class="img img<?php echo ($i % 3) + 1; ?> gallery-item" data-index="<?php echo esc_attr($i); ?>">
+        <div class="img img<?php echo ($i % 3) + 1; ?> gallery-item" data-index="<?php echo esc_attr($i); ?>" role="button" tabindex="0"
+          aria-haspopup="dialog" aria-controls="gallery-lightbox" aria-label="<?php echo esc_attr('Ampliar ' . $alt); ?>">
           <img src="<?php echo esc_url($img['thumb']); ?>" alt="<?php echo esc_attr($alt); ?>" loading="lazy" decoding="async">
-          <div class="gallery-overlay"><i class="fas fa-search-plus"></i></div>
+          <div class="gallery-overlay"><?php echo toyota_monagas_icon('zoom'); ?></div>
         </div>
         <?php endforeach; ?>
       </div>
     </div>
 
-    <div id="gallery-lightbox" class="gallery-lightbox" role="dialog" aria-modal="true" aria-hidden="true">
-      <button class="lightbox-close" aria-label="Cerrar galería">
-        <i class="fas fa-times"></i>
+    <div id="gallery-lightbox" class="gallery-lightbox" role="dialog" aria-modal="true" aria-hidden="true"
+      aria-label="<?php echo esc_attr('Galería de ' . get_the_title($post_id)); ?>" tabindex="-1">
+      <button type="button" class="lightbox-close" aria-label="Cerrar galería">
+        <?php echo toyota_monagas_icon('close'); ?>
       </button>
       <div class="lightbox-content">
         <div class="gallery-swiper swiper">
@@ -237,12 +242,12 @@ $subtitle_final = !empty($subtitle_parts) ? implode(' · ', $subtitle_parts) : $
               $alt = !empty($img['alt']) ? $img['alt'] : (get_the_title() . ' foto ' . ($i+1));
             ?>
             <div class="swiper-slide">
-              <img src="<?php echo esc_url($img['full']); ?>" alt="<?php echo esc_attr($alt); ?>">
+              <img src="<?php echo esc_url($img['full']); ?>" alt="<?php echo esc_attr($alt); ?>" loading="lazy" decoding="async">
             </div>
             <?php endforeach; ?>
           </div>
-          <div class="swiper-button-prev gallery-arrow-prev"></div>
-          <div class="swiper-button-next gallery-arrow-next"></div>
+          <div class="swiper-button-prev gallery-arrow-prev" role="button" tabindex="0" aria-label="Imagen anterior"></div>
+          <div class="swiper-button-next gallery-arrow-next" role="button" tabindex="0" aria-label="Imagen siguiente"></div>
         </div>
 
         <div class="gallery-thumbs swiper">
@@ -251,7 +256,9 @@ $subtitle_final = !empty($subtitle_parts) ? implode(' · ', $subtitle_parts) : $
               $alt = !empty($img['alt']) ? $img['alt'] : ('Miniatura ' . ($i+1));
             ?>
             <div class="swiper-slide">
-              <img src="<?php echo esc_url($img['thumb']); ?>" alt="<?php echo esc_attr($alt); ?>">
+              <button type="button" class="gallery-thumb-button" data-gallery-index="<?php echo esc_attr($i); ?>" aria-label="<?php echo esc_attr('Mostrar ' . $alt); ?>">
+                <img src="<?php echo esc_url($img['thumb']); ?>" alt="" loading="lazy" decoding="async">
+              </button>
             </div>
             <?php endforeach; ?>
           </div>
@@ -266,16 +273,15 @@ $subtitle_final = !empty($subtitle_parts) ? implode(' · ', $subtitle_parts) : $
   if (window.vpColorInit) return;
   window.vpColorInit = true;
 
-  const buttons = Array.from(document.querySelectorAll('.vp-color-btn'));
-  const nameEl = document.getElementById('vp-color-name');
-  const imgEl = document.getElementById('config-car-img') || document.querySelector('.vp-car-img');
-  const cta = document.getElementById('vp-cotizar-btn');
+  var buttons = Array.prototype.slice.call(document.querySelectorAll('.vp-color-btn'));
+  var nameEl = document.getElementById('vp-color-name');
+  var imgEl = document.getElementById('config-car-img') || document.querySelector('.vp-car-img');
+  var cta = document.getElementById('vp-cotizar-btn');
 
-  if (!buttons.length || !imgEl) return;
-
-  const setActive = (btn) => {
-    buttons.forEach((b) => {
-      b.classList.remove('active', 'is-active');
+  function setActive(btn) {
+    buttons.forEach(function(b) {
+      b.classList.remove('active');
+      b.classList.remove('is-active');
       b.setAttribute('aria-pressed', 'false');
     });
 
@@ -287,12 +293,16 @@ $subtitle_final = !empty($subtitle_parts) ? implode(' · ', $subtitle_parts) : $
     }
 
     if (imgEl && btn.dataset.img) {
-      const newSrc = btn.dataset.img;
+      var newSrc = btn.dataset.img;
       imgEl.classList.add('is-fading');
 
-      const finish = () => imgEl.classList.remove('is-fading');
-      imgEl.addEventListener('load', finish, { once: true });
-      imgEl.addEventListener('error', finish, { once: true });
+      var finish = function() {
+        imgEl.classList.remove('is-fading');
+        imgEl.removeEventListener('load', finish);
+        imgEl.removeEventListener('error', finish);
+      };
+      imgEl.addEventListener('load', finish);
+      imgEl.addEventListener('error', finish);
 
       if (imgEl.src !== newSrc) {
         imgEl.src = newSrc;
@@ -300,29 +310,32 @@ $subtitle_final = !empty($subtitle_parts) ? implode(' · ', $subtitle_parts) : $
         requestAnimationFrame(finish);
       }
     }
-  };
+  }
 
-  buttons.forEach((btn) => btn.addEventListener('click', () => setActive(btn)));
+  if (buttons.length && imgEl) {
+    buttons.forEach(function(btn) {
+      btn.addEventListener('click', function() { setActive(btn); });
+    });
+
+    var initial = document.querySelector('.vp-color-btn.active, .vp-color-btn.is-active') || buttons[0];
+    if (initial) setActive(initial);
+  }
 
   if (cta) {
-    cta.addEventListener('click', (e) => {
-      const active = document.querySelector('.vp-color-btn.active, .vp-color-btn.is-active');
-      const color = active?.dataset.name ? ' en color ' + active.dataset.name : '';
-      const modelo = cta.dataset.modelo || document.title;
-      const version = cta.dataset.version ? ' (' + cta.dataset.version + ')' : '';
-      const esUsado = cta.dataset.usado === 'true';
-      const tipoVehiculo = esUsado ? 'vehículo usado' : 'vehículo';
-      const text = 'Hola, quisiera consultar disponibilidad del ' + tipoVehiculo + ': ' + modelo + version + color + '.';
+    cta.addEventListener('click', function() {
+      var active = document.querySelector('.vp-color-btn.active, .vp-color-btn.is-active');
+      var color = active && active.dataset.name ? ' en color ' + active.dataset.name : '';
+      var modelo = cta.dataset.modelo || document.title;
+      var version = cta.dataset.version ? ' (' + cta.dataset.version + ')' : '';
+      var esUsado = cta.dataset.usado === 'true';
+      var tipoVehiculo = esUsado ? 'vehículo usado' : 'vehículo';
+      var text = 'Hola, quisiera consultar disponibilidad del ' + tipoVehiculo + ': ' + modelo + version + color + '.';
 
       if (cta.dataset.wa) {
-        e.preventDefault();
-        window.open(cta.dataset.wa + encodeURIComponent(text), '_blank');
+        cta.href = cta.dataset.wa + encodeURIComponent(text);
       }
     });
   }
-
-  const initial = document.querySelector('.vp-color-btn.active, .vp-color-btn.is-active') || buttons[0];
-  if (initial) setActive(initial);
 })();
 </script>
 

@@ -1,8 +1,15 @@
 node_modules/
+dist/
+release/
+coverage/
 .idea/
 .vscode/
 *.bak
 *.log
 *.txt
+*.tmp
 .DS_Store
 *.zip
+.env
+.env.*
+!.env.example

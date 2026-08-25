@@ -3,6 +3,10 @@
  * Metaboxes for Vehicle Data
  */
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 // ---------------------------------------------
 // Metabox: Categorías de vehículo (Single Select)
 // ---------------------------------------------
@@ -24,6 +28,7 @@ function toyota_m_categoria_select($post){
     'orderby'         => 'name',
     'selected'        => $selected,
     'show_option_none'=> '-- Seleccionar categoría --',
+    'option_none_value' => '0',
   );
   echo '<div style="padding:6px;">';
   wp_dropdown_categories($args);
@@ -34,17 +39,21 @@ function toyota_m_categoria_select($post){
 // Save category meta
 add_action('save_post', function($post_id){
     // Save selected category from our dropdown (single-select)
-    if (isset($_POST['vehiculo_categoria_nonce']) && wp_verify_nonce($_POST['vehiculo_categoria_nonce'], 'vehiculo_categoria_save')){
+    $nonce = sanitize_text_field(toyota_monagas_request_scalar($_POST, 'vehiculo_categoria_nonce'));
+    if ($nonce && wp_verify_nonce($nonce, 'vehiculo_categoria_save')){
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
         if (!current_user_can('edit_post', $post_id)) return;
+        if (!in_array(get_post_type($post_id), array('vehiculo', 'vehiculo_usado'), true)) return;
         
-        if (isset($_POST['veh_categoria_select']) && $_POST['veh_categoria_select'] !== ''){
-            $term_id = intval($_POST['veh_categoria_select']);
-            if ($term_id > 0) {
+        $selected_term = toyota_monagas_request_scalar($_POST, 'veh_categoria_select');
+        $term_id = (int) $selected_term;
+        if ($term_id > 0){
+            $term = $term_id ? get_term($term_id, 'vehiculo_categoria') : null;
+            if ($term && !is_wp_error($term)) {
                 wp_set_object_terms($post_id, array($term_id), 'vehiculo_categoria');
             }
         } else {
-            // Clear terms if none selected
+            // wp_dropdown_categories uses -1 for its "none" option.
             wp_set_object_terms($post_id, array(), 'vehiculo_categoria');
         }
     }
@@ -349,53 +358,71 @@ function toyota_render_vehiculo_data($post) {
 
 // Save Meta
 add_action('save_post', function($post_id){
-    if (!isset($_POST['toyota_veh_data_nonce']) || !wp_verify_nonce($_POST['toyota_veh_data_nonce'], 'toyota_veh_data_save')) return;
+    $nonce = sanitize_text_field(toyota_monagas_request_scalar($_POST, 'toyota_veh_data_nonce'));
+    if (!$nonce || !wp_verify_nonce($nonce, 'toyota_veh_data_save')) return;
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
     if (!current_user_can('edit_post', $post_id)) return;
+    if (!in_array(get_post_type($post_id), array('vehiculo', 'vehiculo_usado'), true)) return;
+
+    $post_data = wp_unslash($_POST);
 
     $fields = array('veh_subtitulo', 'veh_version', 'veh_precio', 'veh_ficha_url', 'veh_legal_url', 'veh_ficha_id');
     foreach($fields as $f){
-        if (isset($_POST[$f])) {
+        if (isset($post_data[$f])) {
+            $value = is_scalar($post_data[$f]) ? (string) $post_data[$f] : '';
             if ($f === 'veh_ficha_id') {
-                update_post_meta($post_id, $f, absint($_POST[$f]));
-            } elseif ($f === 'veh_ficha_url') {
-                update_post_meta($post_id, $f, esc_url_raw($_POST[$f]));
+                update_post_meta($post_id, $f, absint($value));
+            } elseif (in_array($f, array('veh_ficha_url', 'veh_legal_url'), true)) {
+                update_post_meta($post_id, $f, esc_url_raw($value));
             } else {
-                update_post_meta($post_id, $f, sanitize_text_field($_POST[$f]));
+                update_post_meta($post_id, $f, sanitize_text_field($value));
             }
         }
     }
 
     // Sync URL with selected PDF if an attachment ID is present
-    if (!empty($_POST['veh_ficha_id'])) {
-        $fid = absint($_POST['veh_ficha_id']);
+    if (!empty($post_data['veh_ficha_id'])) {
+        $fid = absint($post_data['veh_ficha_id']);
         $furl = $fid ? wp_get_attachment_url($fid) : '';
         if ($furl) {
             update_post_meta($post_id, 'veh_ficha_url', esc_url_raw($furl));
         }
     }
 
-    if (isset($_POST['veh_colores']) && is_array($_POST['veh_colores'])) {
+    if (isset($post_data['veh_colores']) && is_array($post_data['veh_colores'])) {
         // Sanitize and re-index
         $clean = array();
-        foreach($_POST['veh_colores'] as $c) {
-            if (empty($c['nombre']) && empty($c['img'])) continue; // skip empty rows
+        foreach($post_data['veh_colores'] as $c) {
+            if (!is_array($c)) continue;
+            $nombre_raw = isset($c['nombre']) && is_scalar($c['nombre']) ? (string) $c['nombre'] : '';
+            $image_raw = isset($c['img']) && is_scalar($c['img']) ? (string) $c['img'] : '';
+            $hex_raw = isset($c['hex']) && is_scalar($c['hex']) ? (string) $c['hex'] : '';
+            $image_id_raw = isset($c['img_id']) && is_scalar($c['img_id']) ? (string) $c['img_id'] : '';
+            $nombre = sanitize_text_field($nombre_raw);
+            $image = esc_url_raw($image_raw);
+            if ($nombre === '' && $image === '') continue; // skip empty rows
             $clean[] = array(
-                'nombre' => sanitize_text_field($c['nombre']),
-                'hex'    => sanitize_hex_color($c['hex']),
-                'img'    => esc_url_raw($c['img']),
-                'img_id' => intval($c['img_id'])
+                'nombre' => $nombre,
+                'hex'    => sanitize_hex_color($hex_raw),
+                'img'    => $image,
+                'img_id' => absint($image_id_raw),
             );
         }
         update_post_meta($post_id, 'veh_colores', $clean); // Save as array, WP serializes it
+    } else {
+        delete_post_meta($post_id, 'veh_colores');
     }
 
-    if (isset($_POST['veh_galeria']) && is_array($_POST['veh_galeria'])) {
+    if (isset($post_data['veh_galeria']) && is_array($post_data['veh_galeria'])) {
         $gallery_clean = array();
-        foreach($_POST['veh_galeria'] as $g) {
-            $gid  = isset($g['id']) ? absint($g['id']) : 0;
-            $gurl = !empty($g['url']) ? esc_url_raw($g['url']) : '';
-            $galt = isset($g['alt']) ? sanitize_text_field($g['alt']) : '';
+        foreach($post_data['veh_galeria'] as $g) {
+            if (!is_array($g)) continue;
+            $gid_raw = isset($g['id']) && is_scalar($g['id']) ? (string) $g['id'] : '';
+            $gurl_raw = isset($g['url']) && is_scalar($g['url']) ? (string) $g['url'] : '';
+            $galt_raw = isset($g['alt']) && is_scalar($g['alt']) ? (string) $g['alt'] : '';
+            $gid  = absint($gid_raw);
+            $gurl = esc_url_raw($gurl_raw);
+            $galt = sanitize_text_field($galt_raw);
             if (!$gid && !$gurl) continue;
             if ($gid && !$gurl) {
                 $maybe = wp_get_attachment_url($gid);
@@ -544,10 +571,13 @@ function toyota_render_slide_data($post) {
 
 // Save Meta
 add_action('save_post', function($post_id){
-    if (!isset($_POST['toyota_slide_data_nonce']) || !wp_verify_nonce($_POST['toyota_slide_data_nonce'], 'toyota_slide_data_save')) return;
+    $nonce = sanitize_text_field(toyota_monagas_request_scalar($_POST, 'toyota_slide_data_nonce'));
+    if (!$nonce || !wp_verify_nonce($nonce, 'toyota_slide_data_save')) return;
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
     if (!current_user_can('edit_post', $post_id)) return;
     if (get_post_type($post_id) !== 'slide') return;
+
+    $post_data = wp_unslash($_POST);
 
     $fields = array(
         'slide_type', 
@@ -560,12 +590,21 @@ add_action('save_post', function($post_id){
     );
     
     foreach($fields as $f){
-        if (isset($_POST[$f])) {
-            update_post_meta($post_id, $f, sanitize_text_field($_POST[$f]));
+        if (!isset($post_data[$f])) continue;
+        $raw_value = is_scalar($post_data[$f]) ? (string) $post_data[$f] : '';
+
+        if ($f === 'slide_type') {
+            $value = sanitize_key($raw_value);
+            $value = in_array($value, array('image', 'video'), true) ? $value : 'image';
+        } elseif (in_array($f, array('slide_video_url', 'slide_img_desktop', 'slide_img_mobile', 'slide_btn_link'), true)) {
+            $value = esc_url_raw($raw_value);
+        } else {
+            $value = sanitize_text_field($raw_value);
         }
+        update_post_meta($post_id, $f, $value);
     }
     
-    $target = isset($_POST['slide_btn_target']) ? '1' : '0';
+    $target = isset($post_data['slide_btn_target']) ? '1' : '0';
     update_post_meta($post_id, 'slide_btn_target', $target);
 });
 

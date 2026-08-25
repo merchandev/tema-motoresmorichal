@@ -3,10 +3,18 @@
  * Custom Post Types and Taxonomies
  */
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 // ---------------------------------------------
 // Vehicles CPT + Taxonomy (clean labels)
 // ---------------------------------------------
-add_action('init', function(){
+function toyota_register_content_types() {
+    static $registered = false;
+    if ($registered) return;
+    $registered = true;
+
     // CPT Vehículos nuevos
     $labels = array(
         'name'               => 'Vehículos',
@@ -81,7 +89,7 @@ add_action('init', function(){
         'labels' => $labels_slide,
         'public' => false,
         'show_ui' => true,
-        'capability_type' => 'post',
+        'capability_type' => array('toyota_slide', 'toyota_slides'),
         'map_meta_cap' => true,
         'menu_position' => 24,
         'menu_icon' => 'dashicons-images-alt2',
@@ -97,241 +105,112 @@ add_action('init', function(){
         'rewrite'      => array('slug' => 'categoria-vehiculo'),
         'show_in_rest' => true,
     ));
-});
+}
+add_action('init', 'toyota_register_content_types');
+
+function toyota_flush_rewrite_rules_on_activation() {
+    toyota_register_content_types();
+    flush_rewrite_rules();
+}
+add_action('after_switch_theme', 'toyota_flush_rewrite_rules_on_activation', 20);
+
+/**
+ * Grant the complete primitive capability set required by the slide CPT.
+ * The versioned admin migration prevents existing installations from losing
+ * access when moving away from the built-in post capabilities.
+ */
+function toyota_install_slide_capabilities() {
+    $version = '2026-08-24.1';
+    if (get_option('toyota_slide_caps_version') === $version) return;
+
+    $role = get_role('administrator');
+    if (!$role) return;
+
+    $caps = array(
+        'edit_toyota_slides',
+        'edit_others_toyota_slides',
+        'edit_private_toyota_slides',
+        'edit_published_toyota_slides',
+        'publish_toyota_slides',
+        'read_private_toyota_slides',
+        'delete_toyota_slides',
+        'delete_others_toyota_slides',
+        'delete_private_toyota_slides',
+        'delete_published_toyota_slides',
+    );
+    foreach ($caps as $cap) {
+        $role->add_cap($cap);
+    }
+
+    update_option('toyota_slide_caps_version', $version, false);
+}
+add_action('after_switch_theme', 'toyota_install_slide_capabilities');
+add_action('admin_init', 'toyota_install_slide_capabilities');
 
 // ---------------------------------------------
-// Default terms + example vehicles + create pages
+// Explicit admin helper for manually reimporting missing featured images.
+// Theme activation never creates, republishes, or overwrites site content.
 // ---------------------------------------------
-add_action('init', function(){
-  // Ensure default categories exist
-  $defaults = array(
-    'Camioneta' => 'camioneta',
-    'Pasajero'  => 'pasajero',
-    'Pick Ups'  => 'pick-ups',
-    'Comercial' => 'comercial',
-  );
-  foreach($defaults as $name => $slug){
-    if (!term_exists($name, 'vehiculo_categoria') && !term_exists($slug, 'vehiculo_categoria')){
-      wp_insert_term($name, 'vehiculo_categoria', array('slug' => $slug));
-    }
+if (!function_exists('toyota_ss_set_featured')) {
+  /**
+   * Sideload an image and assign the resulting attachment as featured image.
+   */
+  function toyota_ss_set_featured($img_url, $post_id) {
+    $img_url = esc_url_raw($img_url);
+    $post_id = absint($post_id);
+    if (!$img_url || !$post_id || !current_user_can('upload_files')) return false;
+
+    require_once ABSPATH . 'wp-admin/includes/media.php';
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+    require_once ABSPATH . 'wp-admin/includes/image.php';
+
+    $tmp = media_sideload_image($img_url, $post_id, null, 'src');
+    if (is_wp_error($tmp) || !$tmp) return false;
+
+    $attachments = get_children(array(
+      'post_parent'    => $post_id,
+      'post_type'      => 'attachment',
+      'post_mime_type' => 'image',
+      'orderby'        => 'ID',
+      'order'          => 'DESC',
+      'numberposts'    => 1,
+    ));
+    if (empty($attachments)) return false;
+
+    $att = reset($attachments);
+    set_post_thumbnail($post_id, $att->ID);
+    return $att->ID;
   }
+}
 
-  // Create vehiculos-usados page if it doesn't exist
-  $vehiculos_usados_page = get_page_by_path('vehiculos-usados');
-  if (!$vehiculos_usados_page) {
-    $page_data = array(
-      'post_title'    => 'Vehículos Usados',
-      'post_content'  => 'Esta es la página de Vehículos usados de Motores Morichal.',
-      'post_status'   => 'publish',
-      'post_type'     => 'page',
-      'post_name'     => 'vehiculos-usados',
-      'post_author'   => 1,
-    );
-    wp_insert_post($page_data);
-  }
-
-  // Auto-create Buzon and Atencion pages
-  $new_pages = array(
-      'buzon-de-sugerencia' => array('title'=>'Buzón de Sugerencia', 'tpl'=>'page-buzon-de-sugerencia.php'),
-      'atencion-al-cliente' => array('title'=>'Atención al Cliente', 'tpl'=>'page-atencion-al-cliente.php'),
-  );
-  foreach($new_pages as $slug => $info){
-      $pg = get_page_by_path($slug);
-      $pid = $pg ? $pg->ID : 0;
-      if (!$pid){
-          $pid = wp_insert_post(array(
-              'post_title'   => $info['title'],
-              'post_name'    => $slug,
-              'post_content' => '', 
-              'post_status'  => 'publish',
-              'post_type'    => 'page',
-              'post_author'  => 1,
-          ));
-      }
-      // Ensure template is set
-      if ($pid && !empty($info['tpl'])){
-          $curr = get_post_meta($pid, '_wp_page_template', true);
-          if ($curr !== $info['tpl']) update_post_meta($pid, '_wp_page_template', $info['tpl']);
-      }
-  }
-
-  // Helper: sideload image and set as featured if successful
-  if (!function_exists('toyota_ss_set_featured')){
-    function toyota_ss_set_featured($img_url, $post_id){
-      if (empty($img_url) || empty($post_id)) return false;
-      require_once(ABSPATH . 'wp-admin/includes/media.php');
-      require_once(ABSPATH . 'wp-admin/includes/file.php');
-      require_once(ABSPATH . 'wp-admin/includes/image.php');
-      // Attempt to sideload; suppress warnings
-      $tmp = media_sideload_image($img_url, $post_id, null, 'src');
-      if (is_wp_error($tmp) || !$tmp) return false;
-      // Find the most recent attachment for this post
-      $attachments = get_children(array(
-        'post_parent' => $post_id,
-        'post_type'   => 'attachment',
-        'post_mime_type' => 'image',
-        'orderby'     => 'ID',
-        'order'       => 'DESC',
-        'numberposts' => 1,
-      ));
-      if (empty($attachments)) return false;
-      $att = reset($attachments);
-      set_post_thumbnail($post_id, $att->ID);
-      return $att->ID;
-    }
-  }
-
-  // Example vehicles to ensure exist in CPT
-  $examples = array(
-    array(
-      'post_name' => 'toyota-agya-2025',
-      'post_title'=> 'Toyota Agya',
-      'content'   => 'Compacto, ágil y diseñado para la ciudad.',
-      'year'      => '2025',
-      'categoria' => 'Pasajero',
-      'image'     => 'https://arturomerchan.com/wp-content/uploads/2025/09/d0c4a468-d12a-49e4-b38b-6b959d16b818.jpeg',
-    ),
-  );
-
-  foreach($examples as $ex){
-    // Skip if a post with that slug exists
-    $exists = get_page_by_path($ex['post_name'], OBJECT, 'vehiculo');
-    if ($exists) continue;
-
-    $post_data = array(
-      'post_title'   => $ex['post_title'],
-      'post_name'    => $ex['post_name'],
-      'post_content' => $ex['content'],
-      'post_status'  => 'publish',
-      'post_type'    => 'vehiculo',
-    );
-    $post_id = wp_insert_post($post_data);
-    if (is_wp_error($post_id) || !$post_id) continue;
-    // Set subtitle/year as meta
-    update_post_meta($post_id, 'veh_subtitulo', $ex['year'] . ' ' . $ex['post_title']);
-    // Assign taxonomy term if exists
-    $term = get_term_by('name', $ex['categoria'], 'vehiculo_categoria');
-    if ($term) wp_set_object_terms($post_id, intval($term->term_id), 'vehiculo_categoria');
-    // Try to sideload image and set featured
-    if (!empty($ex['image'])){
-      toyota_ss_set_featured($ex['image'], $post_id);
-    }
-  }
-
-    // Default Slides (Auto-migrate)
-    $slides = get_posts(array('post_type' => 'slide', 'posts_per_page' => 1));
-    if (empty($slides)) {
-        $default_slides = array(
-            array(
-                'title' => 'Visita nuestra sede',
-                'desc' => 'Av. Alirio Ugarte Pelayo, Maturín, Monagas, Venezuela',
-                'type' => 'video',
-                'video' => 'https://mmorichal.com/wp-content/uploads/2026/03/toyota-monagas-maturin-venezuela-actulizacion-de-edificio.mp4',
-                'btn_text' => 'Conócenos',
-                'btn_link' => 'https://mmorichal.com/blog/',
-                'btn_target' => '0',
-                'menu_order' => 0
-            ),
-            array(
-                'title' => 'Bienvenidos a Motores Morichal',
-                'desc' => 'Tu concesionario Oficial Toyota en Maturín',
-                'type' => 'video',
-                'video' => get_template_directory_uri().'/assets/video/home/video-fortuner.mp4',
-                'btn_text' => 'Ver vehículos',
-                'btn_link' => '#',
-                'btn_target' => '0',
-                'menu_order' => 1
-            ),
-            array(
-                'title' => 'Toyota APP',
-                'desc' => 'Toda la información de tu vehículo al alcance de tu mano.',
-                'type' => 'image',
-                'img_desk' => get_template_directory_uri().'/assets/img/home/banner-app-desktop.jpg',
-                'img_mob' => get_template_directory_uri().'/assets/img/home/banner-app-mobile.png',
-                'btn_text' => 'Más información',
-                'btn_link' => 'https://www.toyota.com.ve/mi-toyota/app-toyota',
-                'btn_target' => '1',
-                'menu_order' => 2
-            ),
-            array(
-                'title' => 'Nuevo Yaris Cross',
-                'desc' => 'Nuevo diseño moderno y sofisticado',
-                'type' => 'video',
-                'video' => get_template_directory_uri().'/assets/video/home/video-yaris.mp4',
-                'btn_text' => 'Explorar',
-                'btn_link' => 'https://mmorichal.com/vehiculo/toyota-yaris-cross-2025/',
-                'btn_target' => '0',
-                'menu_order' => 3
-            ),
-            array(
-                'title' => 'Un legado de confianza que se mide en décadas',
-                'desc' => '',
-                'type' => 'video',
-                'video' => get_template_directory_uri().'/assets/video/home/video-corolla.mp4',
-                'btn_text' => 'Descubrir',
-                'btn_link' => 'https://mmorichal.com/sobre-nosotros/',
-                'btn_target' => '0',
-                'menu_order' => 4
-            ),
-            array(
-                'title' => 'AGYA 2025',
-                'desc' => 'El Toyota Agya está diseñado priorizando la ergonomía, ofreciendo un amplio espacio interior y una posición de conducción enfocada en comodidad que te permitirá hacer los viajes que necesites sin sentirte fatigado.',
-                'type' => 'video',
-                'video' => 'https://mmorichal.com/wp-content/uploads/2025/09/AGYA-TOYOTA-MONAGAS.mp4',
-                'btn_text' => 'Conócelo',
-                'btn_link' => 'https://mmorichal.com/vehiculo/toyota-agya-2025/',
-                'btn_target' => '0',
-                'menu_order' => 5
-            ),
-            array(
-                'title' => 'TU VIDA ESTÁ EN RIESGO',
-                'desc' => 'Verifica si tu Toyota está en Campaña.',
-                'type' => 'image',
-                'img_desk' => get_template_directory_uri().'/assets/img/home/banner-recall-desktop.png',
-                'img_mob' => get_template_directory_uri().'/assets/img/home/banner-recall-mobile.jpg',
-                'btn_text' => 'Verifica aquí',
-                'btn_link' => 'https://www.toyota.com.ve/mi-toyota/servicios/recall',
-                'btn_target' => '1',
-                'menu_order' => 6
-            ),
-        );
-        
-        foreach ($default_slides as $s) {
-            $post_id = wp_insert_post(array(
-                'post_title' => $s['title'],
-                'post_status' => 'publish',
-                'post_type' => 'slide',
-                'menu_order' => $s['menu_order']
-            ));
-            
-            if ($post_id) {
-                update_post_meta($post_id, 'slide_type', $s['type']);
-                update_post_meta($post_id, 'slide_desc', $s['desc']);
-                update_post_meta($post_id, 'slide_btn_text', $s['btn_text']);
-                update_post_meta($post_id, 'slide_btn_link', $s['btn_link']);
-                update_post_meta($post_id, 'slide_btn_target', $s['btn_target']);
-                
-                if ($s['type'] === 'video') {
-                    update_post_meta($post_id, 'slide_video_url', $s['video']);
-                } else {
-                    update_post_meta($post_id, 'slide_img_desktop', $s['img_desk']);
-                    update_post_meta($post_id, 'slide_img_mobile', $s['img_mob']);
-                }
-            }
-        }
-    }
-});
 
 // ---------------------------------------------
 // Drag and Drop Slide Ordering
 // ---------------------------------------------
+function toyota_slide_ordering_view_is_complete() {
+    $search = sanitize_text_field(toyota_monagas_request_scalar($_GET, 's'));
+    $status = sanitize_key(toyota_monagas_request_scalar($_GET, 'post_status'));
+    $month = absint(toyota_monagas_request_scalar($_GET, 'm'));
+    $author = absint(toyota_monagas_request_scalar($_GET, 'author'));
+    $paged = absint(toyota_monagas_request_scalar($_GET, 'paged'));
+    $orderby = sanitize_key(toyota_monagas_request_scalar($_GET, 'orderby'));
+
+    return $search === ''
+        && ($status === '' || $status === 'all')
+        && $month === 0
+        && $author === 0
+        && $paged <= 1
+        && ($orderby === '' || $orderby === 'menu_order');
+}
+
 add_action('admin_enqueue_scripts', function($hook) {
     global $post_type;
-    if ($hook == 'edit.php' && $post_type == 'slide') {
+    if ($hook === 'edit.php' && $post_type === 'slide' && toyota_slide_ordering_view_is_complete()) {
         wp_enqueue_script('jquery-ui-sortable');
         wp_add_inline_script('jquery-ui-sortable', '
             jQuery(document).ready(function($) {
-                $("table.wp-list-table tbody").sortable({
+                var $rows = $("table.wp-list-table tbody");
+                $rows.sortable({
                     items: "tr",
                     cursor: "move",
                     axis: "y",
@@ -352,6 +231,13 @@ add_action('admin_enqueue_scripts', function($hook) {
                             nonce: "' . wp_create_nonce('update_slide_order_nonce') . '"
                         }, function(response) {
                             ui.item.animate({"background-color": "transparent"}, 500);
+                            if (!response || !response.success) {
+                                $rows.sortable("cancel");
+                                window.alert(response && response.data && response.data.message ? response.data.message : "No se pudo guardar el orden.");
+                            }
+                        }).fail(function() {
+                            $rows.sortable("cancel");
+                            window.alert("No se pudo guardar el orden. Recarga la página e intenta nuevamente.");
                         });
                     }
                 });
@@ -363,33 +249,70 @@ add_action('admin_enqueue_scripts', function($hook) {
 });
 
 add_action('wp_ajax_update_slide_order', function() {
-    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'update_slide_order_nonce')) {
-        wp_send_json_error();
+    $nonce = sanitize_text_field(toyota_monagas_request_scalar($_POST, 'nonce'));
+    if (!$nonce || !wp_verify_nonce($nonce, 'update_slide_order_nonce')) {
+        wp_send_json_error(array('message' => 'Nonce no válido.'), 403);
     }
-    if (!current_user_can('edit_posts')) {
-        wp_send_json_error();
+    if (!current_user_can('edit_toyota_slides')) {
+        wp_send_json_error(array('message' => 'No tienes permiso para ordenar slides.'), 403);
     }
-    
-    $order = isset($_POST['order']) ? (array) $_POST['order'] : array();
-    if (!empty($order)) {
-        foreach ($order as $menu_order => $post_id) {
-            wp_update_post(array(
-                'ID' => intval($post_id),
-                'menu_order' => $menu_order
-            ));
+
+    $raw_order = isset($_POST['order']) ? (array) wp_unslash($_POST['order']) : array();
+    $order = array_values(array_unique(array_filter(array_map('absint', $raw_order))));
+    if (empty($order) || count($order) > 500 || count($order) !== count($raw_order)) {
+        wp_send_json_error(array('message' => 'Orden no válido.'), 400);
+    }
+
+    $expected_order = get_posts(array(
+        'post_type'      => 'slide',
+        'post_status'    => array('publish', 'future', 'draft', 'pending', 'private'),
+        'posts_per_page' => -1,
+        'fields'         => 'ids',
+        'orderby'        => 'menu_order ID',
+        'order'          => 'ASC',
+    ));
+    $expected_order = array_values(array_filter(array_map('absint', $expected_order), function($post_id) {
+        return current_user_can('edit_post', $post_id);
+    }));
+
+    if (count($expected_order) !== count($order)
+        || array_diff($expected_order, $order)
+        || array_diff($order, $expected_order)) {
+        wp_send_json_error(array(
+            'message' => 'La lista cambió o está filtrada. Recarga la vista completa antes de ordenar.',
+        ), 409);
+    }
+
+    foreach ($order as $menu_order => $post_id) {
+        if (get_post_type($post_id) !== 'slide' || !current_user_can('edit_post', $post_id)) {
+            wp_send_json_error(array('message' => 'El orden contiene un slide no autorizado.'), 403);
         }
-        wp_send_json_success();
     }
-    wp_send_json_error();
+
+    foreach ($order as $menu_order => $post_id) {
+        $updated = wp_update_post(array(
+            'ID'         => $post_id,
+            'menu_order' => $menu_order,
+        ), true);
+        if (is_wp_error($updated)) {
+            wp_send_json_error(array('message' => 'No se pudo guardar el orden.'), 500);
+        }
+    }
+
+    wp_send_json_success();
 });
 
 // Respect menu_order on edit.php for slides
 add_action('pre_get_posts', function($query) {
     global $pagenow;
-    if (is_admin() && $pagenow == 'edit.php' && isset($_GET['post_type']) && $_GET['post_type'] == 'slide') {
+    $requested_type = sanitize_key(toyota_monagas_request_scalar($_GET, 'post_type'));
+    if (is_admin() && $query->is_main_query() && $pagenow === 'edit.php' && $requested_type === 'slide') {
         if (!isset($_GET['orderby'])) {
             $query->set('orderby', 'menu_order');
             $query->set('order', 'ASC');
+        }
+        if (toyota_slide_ordering_view_is_complete()) {
+            $query->set('posts_per_page', -1);
         }
     }
 });

@@ -2,17 +2,6 @@
 (function () {
   var SLIDE_DURATION = 13170; // milisegundos
 
-  function setHeaderOffset() {
-    try {
-      var header = document.querySelector('.site-header');
-      var main = document.getElementById('site-main');
-      if (!header) return;
-      var h = header.offsetHeight || 0;
-      document.documentElement.style.setProperty('--header-h', h + 'px');
-      if (main) { main.style.paddingTop = ''; }
-    } catch (e) { }
-  }
-
   function revealOnView() {
     var headers = document.querySelectorAll('.section-header');
     var reveals = [];
@@ -63,11 +52,42 @@
 
     var swiperInstance = null;
     var pausedByHover = false;
+    var pauseButton = slider.querySelector('.cs-play-toggle');
+    var motionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+    var pausedByUser = !!(motionQuery && motionQuery.matches);
     var rafId = 0;
     var lastTs = 0;
     var progressMs = 0;
     var activeIndex = 0;
     var activationToken = 0;
+
+    function isPaused() {
+      return pausedByHover || pausedByUser;
+    }
+
+    function updatePauseButton() {
+      if (!pauseButton) return;
+      pauseButton.setAttribute('aria-pressed', pausedByUser ? 'true' : 'false');
+      pauseButton.setAttribute('aria-label', pausedByUser ? 'Reanudar slider' : 'Pausar slider');
+      pauseButton.textContent = pausedByUser ? 'Reanudar' : 'Pausar';
+    }
+
+    function syncActiveVideo() {
+      if (!swiperInstance || !swiperInstance.slides) return;
+      var activeSlide = swiperInstance.slides[swiperInstance.activeIndex];
+      var activeVideo = activeSlide ? activeSlide.querySelector('video') : null;
+      if (!activeVideo) return;
+      if (isPaused()) {
+        try { activeVideo.pause(); } catch (e) { }
+      } else {
+        try {
+          var playPromise = activeVideo.play();
+          if (playPromise && typeof playPromise.catch === 'function') {
+            playPromise.catch(function () { });
+          }
+        } catch (e) { }
+      }
+    }
 
     function setWidth(span, value, instant) {
       if (!span) return;
@@ -126,7 +146,7 @@
       }
 
       if (!lastTs) lastTs = now;
-      if (!pausedByHover) {
+      if (!isPaused()) {
         progressMs += (now - lastTs);
       }
       lastTs = now;
@@ -134,9 +154,9 @@
       if (isWorkingVideo && activeVideo.readyState >= 2) {
         progressMs = activeVideo.currentTime * 1000;
         
-        if (pausedByHover && !activeVideo.paused) {
+        if (isPaused() && !activeVideo.paused) {
           try { activeVideo.pause(); } catch(e){}
-        } else if (!pausedByHover && activeVideo.paused && activeVideo.currentTime < activeVideo.duration) {
+        } else if (!isPaused() && activeVideo.paused && activeVideo.currentTime < activeVideo.duration) {
           try { activeVideo.play(); } catch(e){}
         }
       }
@@ -188,6 +208,10 @@
         video.removeAttribute('loop');
 
         function tryPlay() {
+          if (isPaused()) {
+            resolve();
+            return;
+          }
           // Reset time just before play to avoid glitch
           try { video.currentTime = 0; } catch (e) { }
           var playPromise;
@@ -248,7 +272,6 @@
     function primeAround(swiper) {
       if (!swiper) return;
       primeSlide(swiper, 1);
-      primeSlide(swiper, 2);
     }
     function getRealIndex(swiper) {
       var total = progressSpans.length || 1;
@@ -274,8 +297,7 @@
         if (videos.length > 0) {
           videos.forEach(function(v) {
             v.onended = function () {
-              // Advance to next slide immediately when video ends, regardless of hover state
-              swiper.slideNext();
+              if (!isPaused()) swiper.slideNext();
             };
           });
         }
@@ -328,12 +350,40 @@
     if (typeof Swiper === 'undefined') return; // Swiper is enqueued via WordPress
     createOrAttach();
 
+    if (pauseButton) {
+      pauseButton.addEventListener('click', function () {
+        pausedByUser = !pausedByUser;
+        lastTs = 0;
+        updatePauseButton();
+        syncActiveVideo();
+      });
+    }
+
+    if (motionQuery) {
+      var onMotionChange = function (event) {
+        pausedByUser = !!event.matches;
+        lastTs = 0;
+        updatePauseButton();
+        syncActiveVideo();
+      };
+      if (typeof motionQuery.addEventListener === 'function') {
+        motionQuery.addEventListener('change', onMotionChange);
+      } else if (typeof motionQuery.addListener === 'function') {
+        motionQuery.addListener(onMotionChange);
+      }
+    }
+
+    updatePauseButton();
+
     slider.addEventListener('mouseenter', function () {
       pausedByHover = true;
+      syncActiveVideo();
     });
 
     slider.addEventListener('mouseleave', function () {
       pausedByHover = false;
+      lastTs = 0;
+      syncActiveVideo();
     });
   }
 
@@ -346,9 +396,10 @@
     var indicator = document.querySelector('#vehiculos .toyota-tab-indicator');
     var arrowPrev = document.querySelector('#vehiculos .toyota-arrow.swiper-button-prev');
     var arrowNext = document.querySelector('#vehiculos .toyota-arrow.swiper-button-next');
-    if (!wrapper || !templates.length) return;
+    if (!wrapper) return;
 
     var swiper = null;
+    var currentItemCount = 0;
 
     function createVehSwiper() {
       // Avoid duplicate init
@@ -361,6 +412,7 @@
       try {
         var inst = new Swiper('#vehiculos .toyota-slider', {
           spaceBetween: 20,
+          watchOverflow: true,
           navigation: {
             nextEl: '#vehiculos .toyota-arrow.swiper-button-next',
             prevEl: '#vehiculos .toyota-arrow.swiper-button-prev'
@@ -390,7 +442,10 @@
     }
 
     function updateArrowState(count) {
-      var show = count >= 4;
+      currentItemCount = count;
+      var slidesPerView = window.innerWidth >= 1024 ? 3 : (window.innerWidth >= 768 ? 2 : 1);
+      var show = count > slidesPerView;
+      var canSwipe = count > 1;
       var displayValue = show ? '' : 'none';
       [arrowPrev, arrowNext].forEach(function (btn) {
         if (!btn) return;
@@ -403,10 +458,16 @@
         }
       });
       if (swiper) {
-        swiper.allowSlideNext = show;
-        swiper.allowSlidePrev = show;
+        // Keep touch/drag enabled for two or three cards on narrow screens,
+        // even when desktop arrows are intentionally hidden.
+        swiper.allowSlideNext = canSwipe;
+        swiper.allowSlidePrev = canSwipe;
       }
     }
+
+    window.addEventListener('resize', function () {
+      updateArrowState(currentItemCount);
+    });
 
     function buildSlides(category) {
       var cat = category;
@@ -421,16 +482,22 @@
       });
       if (!items.length) {
         var emptySlide = document.createElement('div');
-        // Ensure it spans full width if possible, or just sits as a single slide
         emptySlide.className = 'swiper-slide empty-message-slide';
-        // Inline some styles or rely on css class added later
         emptySlide.innerHTML =
           '<div class="toyota-empty-card">' +
-          '<div class="tec-icon"><i class="fas fa-shipping-fast"></i></div>' +
+          '<div class="tec-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="32" height="32" focusable="false"><path d="M3 6h11v9H3zM14 9h4l3 3v3h-7zM7 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm10 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></div>' +
           '<h3>Pronto en Stock</h3>' +
           '<p>Estamos renovando el inventario de esta categor&iacute;a.</p>' +
-          '<a href="https://wa.me/584249090679?text=Hola,%20quisiera%20consultar%20cuando%20llegan%20nuevos%20vehiculos." target="_blank" class="toyota-btn">Consultar llegada <i class="fab fa-whatsapp"></i></a>' +
+          '<a href="#whatsapp-mm" class="toyota-btn">Consultar llegada</a>' +
           '</div>';
+
+        var emptyLink = emptySlide.querySelector('.toyota-btn');
+        var config = window.toyota_front_ajax || {};
+        if (emptyLink && typeof config.empty_inventory_url === 'string' && /^https:\/\/wa\.me\//i.test(config.empty_inventory_url)) {
+          emptyLink.href = config.empty_inventory_url;
+          emptyLink.target = '_blank';
+          emptyLink.rel = 'noopener noreferrer';
+        }
 
         wrapper.appendChild(emptySlide);
 
@@ -472,9 +539,14 @@
       tabs.forEach(function (btn) {
         btn.classList.remove('is-active');
         btn.setAttribute('aria-selected', 'false');
+        btn.setAttribute('tabindex', '-1');
       });
       tab.classList.add('is-active');
       tab.setAttribute('aria-selected', 'true');
+      tab.setAttribute('tabindex', '0');
+
+      var panel = document.querySelector('#vehiculos .toyota-slider');
+      if (panel && tab.id) panel.setAttribute('aria-labelledby', tab.id);
     }
 
     function ensureTabInView(tab, align) {
@@ -500,6 +572,24 @@
         ensureTabInView(tab, 'center');
       });
     });
+
+    if (tablist) {
+      tablist.addEventListener('keydown', function (event) {
+        var current = Array.prototype.indexOf.call(tabs, document.activeElement);
+        if (current < 0) return;
+
+        var next = current;
+        if (event.key === 'ArrowRight') next = (current + 1) % tabs.length;
+        else if (event.key === 'ArrowLeft') next = (current - 1 + tabs.length) % tabs.length;
+        else if (event.key === 'Home') next = 0;
+        else if (event.key === 'End') next = tabs.length - 1;
+        else return;
+
+        event.preventDefault();
+        tabs[next].focus();
+        tabs[next].click();
+      });
+    }
 
     // Initial setup with retry for Swiper
     var initAttempts = 0;
@@ -531,72 +621,127 @@
     tryInit();
   }
 
-  // Load more on /vehiculos page (AJAX)
+  // Load more on vehicle inventory pages (AJAX with link fallback)
   function initVehiculosLoadMore() {
-    var btn = document.getElementById('toyota-loadmore');
-    if (!btn) return;
-    btn.addEventListener('click', function () {
-      var page = parseInt(btn.getAttribute('data-page') || '2', 10);
-      var max = parseInt(btn.getAttribute('data-max') || '1', 10);
-      var cat = btn.getAttribute('data-cat') || '';
-      if (page > max) { btn.style.display = 'none'; return; }
-      btn.disabled = true; var oldText = btn.innerHTML; btn.innerHTML = 'Cargando...';
-      var form = new FormData();
-      form.append('action', 'toyota_load_more_vehiculos');
-      form.append('page', page);
-      form.append('cat', cat);
-      form.append('nonce', (window.toyota_front_ajax && toyota_front_ajax.nonce) ? toyota_front_ajax.nonce : '');
-      fetch((window.toyota_front_ajax && toyota_front_ajax.ajax_url) ? toyota_front_ajax.ajax_url : '/wp-admin/admin-ajax.php', {
-        method: 'POST', body: form, credentials: 'same-origin'
-      }).then(function (res) { return res.json(); }).then(function (data) {
-        if (data && data.success && data.data && data.data.html) {
-          var grid = document.querySelector('.vehiculos-grid');
-          if (grid) {
-            var wrapper = document.createElement('div');
-            wrapper.innerHTML = data.data.html;
-            // append child nodes with animation (stagger)
-            var nodes = Array.from(wrapper.children);
-            nodes.forEach(function (node, idx) {
+    var buttons = document.querySelectorAll('.veh-loadmore[data-action]');
+    if (!buttons.length) return;
+
+    function updateFallbackHref(btn, nextPage) {
+      var href = btn.getAttribute('href') || '';
+      if (!href) return;
+      if (/\/page\/\d+\/?(?:\?|$)/.test(href)) {
+        href = href.replace(/\/page\/\d+\/?(?=\?|$)/, '/page/' + nextPage + '/');
+      } else if (/([?&])paged=\d+/.test(href)) {
+        href = href.replace(/([?&])paged=\d+/, '$1paged=' + nextPage);
+      }
+      btn.setAttribute('href', href);
+    }
+
+    Array.prototype.forEach.call(buttons, function (btn) {
+      btn.addEventListener('click', function (event) {
+        if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+
+        var page = parseInt(btn.getAttribute('data-page') || '2', 10);
+        var max = parseInt(btn.getAttribute('data-max') || '1', 10);
+        if (page > max) {
+          event.preventDefault();
+          btn.style.display = 'none';
+          return;
+        }
+        if (btn.getAttribute('aria-disabled') === 'true') {
+          event.preventDefault();
+          return;
+        }
+
+        var action = btn.getAttribute('data-action') || '';
+        if (action !== 'toyota_load_more_vehiculos' && action !== 'toyota_load_more_usados') return;
+
+        var catalog = btn.closest ? btn.closest('.veh-catalogo') : null;
+        var targetSelector = btn.getAttribute('data-target') || '.veh-grid';
+        var grid = (catalog && catalog.querySelector(targetSelector)) || document.querySelector(targetSelector);
+        var ajaxConfig = window.toyota_front_ajax || {};
+        var ajax = ajaxConfig.ajax_url || btn.getAttribute('data-ajax-url') || '';
+        var nonce = ajaxConfig.nonce || btn.getAttribute('data-nonce') || '';
+        if (!grid || !ajax || !window.fetch) return;
+
+        var status = catalog && catalog.querySelector('.veh-load-status');
+        if (!status && catalog) {
+          status = document.createElement('p');
+          status.className = 'veh-load-status sr-only';
+          status.setAttribute('role', 'status');
+          status.setAttribute('aria-live', 'polite');
+          catalog.appendChild(status);
+        }
+
+        event.preventDefault();
+        var oldText = btn.textContent;
+        btn.setAttribute('aria-disabled', 'true');
+        btn.classList.add('is-loading');
+        btn.textContent = 'Cargando…';
+        grid.setAttribute('aria-busy', 'true');
+
+        var form = new FormData();
+        form.append('action', action);
+        form.append('page', page);
+        form.append('cat', btn.getAttribute('data-cat') || 'all');
+        form.append('nonce', nonce);
+
+        var shouldUseFallback = false;
+        fetch(ajax, { method: 'POST', body: form, credentials: 'same-origin' })
+          .then(function (response) {
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            return response.json();
+          })
+          .then(function (data) {
+            if (!data || !data.success || !data.data || !data.data.html) {
+              throw new Error('Invalid inventory response');
+            }
+
+            var holder = document.createElement('div');
+            holder.innerHTML = data.data.html;
+            var nodes = Array.prototype.slice.call(holder.children);
+            var buttonHadFocus = document.activeElement === btn;
+            nodes.forEach(function (node, index) {
               node.classList.add('is-new');
               grid.appendChild(node);
-              // stagger entrance
               setTimeout(function () {
                 requestAnimationFrame(function () { node.classList.add('in'); });
-              }, idx * 80);
+              }, index * 80);
             });
-          }
-          // increment page and update or hide button
-          page++;
-          btn.setAttribute('data-page', page);
-          if (page > (data.data.max || max)) { btn.style.display = 'none'; }
-        } else {
-          // failure: hide and log
-          console.warn('Load more failed', data);
-          btn.style.display = 'none';
-        }
-      }).catch(function (err) { console.error('AJAX error', err); btn.style.display = 'none'; })
-        .finally(function () { btn.disabled = false; btn.innerHTML = oldText; });
-    });
-  }
 
-  function headerScroll() {
-    var header = document.querySelector('.site-header');
-    if (!header) return;
-    var wasScrolled = window.scrollY > 10;
-    function update() {
-      var isScrolled = window.scrollY > 10;
-      if (isScrolled && !wasScrolled) {
-        header.classList.remove('no-anim');
-        header.classList.add('scrolled');
-      } else if (!isScrolled && wasScrolled) {
-        header.classList.add('no-anim');
-        header.classList.remove('scrolled');
-        setTimeout(function () { header.classList.remove('no-anim'); }, 80);
-      }
-      wasScrolled = isScrolled;
-    }
-    update();
-    window.addEventListener('scroll', update);
+            var nextPage = parseInt(data.data.next_page || (page + 1), 10);
+            max = parseInt(data.data.max_pages || data.data.max || max, 10);
+            btn.setAttribute('data-page', nextPage);
+            btn.setAttribute('data-max', max);
+            updateFallbackHref(btn, nextPage);
+            var isFinished = data.data.has_more === false || nextPage > max;
+            if (status) {
+              status.textContent = nodes.length + (nodes.length === 1
+                ? ' vehículo añadido.'
+                : ' vehículos añadidos.') + (isFinished ? ' No hay más resultados.' : '');
+            }
+            if (isFinished) {
+              btn.style.display = 'none';
+              if (buttonHadFocus && nodes[0]) {
+                var focusTarget = nodes[0].querySelector('a[href]') || nodes[0];
+                if (!focusTarget.hasAttribute('tabindex') && focusTarget === nodes[0]) focusTarget.setAttribute('tabindex', '-1');
+                focusTarget.focus();
+              }
+            }
+          })
+          .catch(function (error) {
+            shouldUseFallback = true;
+            if (window.console && console.warn) console.warn('Inventory load failed; using page link.', error);
+          })
+          .then(function () {
+            btn.removeAttribute('aria-disabled');
+            btn.classList.remove('is-loading');
+            btn.textContent = oldText;
+            grid.removeAttribute('aria-busy');
+            if (shouldUseFallback && btn.href) window.location.assign(btn.href);
+          });
+      });
+    });
   }
 
   // Infinite scroll for Blog page
@@ -607,8 +752,34 @@
     var page = parseInt(list.getAttribute('data-page') || '2', 10);
     var max = parseInt(list.getAttribute('data-max') || '1', 10);
     var loading = false;
-    var ajax = (window.toyota_front_ajax && toyota_front_ajax.ajax_url) ? toyota_front_ajax.ajax_url : '/wp-admin/admin-ajax.php';
-    var nonce = (window.toyota_front_ajax && toyota_front_ajax.nonce) ? toyota_front_ajax.nonce : '';
+    var ajaxConfig = window.toyota_front_ajax || {};
+    var ajax = ajaxConfig.ajax_url || list.getAttribute('data-ajax-url') || '';
+    var nonce = ajaxConfig.nonce || list.getAttribute('data-nonce') || '';
+    if (!ajax || !window.fetch || !window.IntersectionObserver) return;
+    var pagination = document.querySelector('.blog-pagination');
+    var paginationNext = pagination && pagination.querySelector('a[rel="next"]');
+    var paginationStatus = pagination && pagination.querySelector('span');
+    if (paginationNext) paginationNext.hidden = true;
+
+    function updatePaginationFallback(nextPage, showNext) {
+      if (!pagination) return;
+      if (paginationStatus) {
+        paginationStatus.textContent = 'Contenido cargado hasta la página ' + Math.min(Math.max(1, nextPage - 1), max) + ' de ' + max;
+      }
+      if (!paginationNext) return;
+      if (nextPage > max) {
+        paginationNext.hidden = true;
+        return;
+      }
+      try {
+        var nextUrl = new URL(paginationNext.href, window.location.href);
+        nextUrl.searchParams.set('blog_page', String(nextPage));
+        paginationNext.href = nextUrl.toString();
+        paginationNext.hidden = !showNext;
+      } catch (urlError) {
+        paginationNext.hidden = true;
+      }
+    }
 
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
@@ -620,7 +791,10 @@
         form.append('page', page);
         form.append('nonce', nonce);
         fetch(ajax, { method: 'POST', body: form, credentials: 'same-origin' })
-          .then(function (res) { return res.json(); })
+          .then(function (res) {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.json();
+          })
           .then(function (data) {
             if (data && data.success && data.data && data.data.html) {
               var wrap = document.createElement('div');
@@ -630,14 +804,23 @@
                 list.appendChild(node);
                 setTimeout(function () { node.classList.add('in'); }, idx * 60);
               });
-              page++;
+              page = parseInt(data.data.next_page || (page + 1), 10);
               list.setAttribute('data-page', page);
-              if (data.data.max) { max = data.data.max; }
-              if (page > max) { io.disconnect(); }
+              if (data.data.max) { max = parseInt(data.data.max, 10); }
+              updatePaginationFallback(page, false);
+              if (data.data.has_more === false || page > max) { io.disconnect(); }
+            } else {
+              updatePaginationFallback(page, true);
+              io.disconnect();
             }
+            loading = false;
           })
-          .catch(function (err) { console.warn('Blog infinite failed', err); io.disconnect(); })
-          .finally(function () { loading = false; });
+          .catch(function (err) {
+            loading = false;
+            updatePaginationFallback(page, true);
+            if (window.console && console.warn) console.warn('Blog infinite failed', err);
+            io.disconnect();
+          });
       });
     }, { rootMargin: '360px 0px' });
     io.observe(sentinel);
@@ -647,56 +830,143 @@
   function initBlogSearch() {
     var input = document.getElementById('blog-search-input');
     var box = document.getElementById('blog-search-suggest');
+    var searchForm = document.getElementById('blog-search');
     if (!input || !box) return;
-    var ajax = (window.toyota_front_ajax && toyota_front_ajax.ajax_url) ? toyota_front_ajax.ajax_url : '/wp-admin/admin-ajax.php';
-    var nonce = (window.toyota_front_ajax && toyota_front_ajax.nonce) ? toyota_front_ajax.nonce : '';
+    var ajaxConfig = window.toyota_front_ajax || {};
+    var ajax = ajaxConfig.ajax_url || (searchForm && searchForm.getAttribute('data-ajax-url')) || '';
+    var nonce = ajaxConfig.nonce || (searchForm && searchForm.getAttribute('data-nonce')) || '';
     var tmr = 0;
-    function hide() { box.hidden = true; box.innerHTML = ''; }
+    var requestNumber = 0;
+    var activeController = null;
+
+    function clearBox() {
+      while (box.firstChild) box.removeChild(box.firstChild);
+    }
+
+    function hide() {
+      box.hidden = true;
+      input.removeAttribute('aria-busy');
+      clearBox();
+    }
+
+    function cancelAndHide() {
+      if (tmr) clearTimeout(tmr);
+      tmr = 0;
+      requestNumber++;
+      if (activeController) activeController.abort();
+      activeController = null;
+      hide();
+    }
+
+    function safeHttpUrl(value) {
+      if (!value) return '';
+      var parser = document.createElement('a');
+      parser.href = String(value);
+      return (parser.protocol === 'http:' || parser.protocol === 'https:') ? parser.href : '';
+    }
+
     function render(items) {
       if (!items || !items.length) { hide(); return; }
-      var html = items.map(function (it) {
-        var img = it.thumb ? '<img src="' + it.thumb + '" alt="" />' : '';
-        return '<a class="sug-item" href="' + it.url + '">' + img + '<span>' + it.title + '</span></a>';
-      }).join('');
-      box.innerHTML = html + '<a class="sug-more" href="/?s=' + encodeURIComponent(input.value.trim()) + '">Ver todos los resultados</a>';
+      clearBox();
+      var fragment = document.createDocumentFragment();
+      items.forEach(function (item, index) {
+        var itemUrl = safeHttpUrl(item.url);
+        if (!itemUrl) return;
+
+        var link = document.createElement('a');
+        link.className = 'sug-item';
+        link.href = itemUrl;
+        link.id = 'blog-search-option-' + index;
+
+        var thumbUrl = safeHttpUrl(item.thumb);
+        if (thumbUrl) {
+          var image = document.createElement('img');
+          image.src = thumbUrl;
+          image.alt = '';
+          image.loading = 'lazy';
+          link.appendChild(image);
+        }
+
+        var title = document.createElement('span');
+        title.textContent = item.title || '';
+        link.appendChild(title);
+        fragment.appendChild(link);
+      });
+
+      var more = document.createElement('a');
+      var action = (searchForm && searchForm.getAttribute('action')) || window.location.pathname;
+      more.className = 'sug-more';
+      more.href = action + (action.indexOf('?') === -1 ? '?' : '&') + 's=' + encodeURIComponent(input.value.trim());
+      more.textContent = 'Ver todos los resultados';
+      fragment.appendChild(more);
+      box.appendChild(fragment);
       box.hidden = false;
+      input.removeAttribute('aria-busy');
     }
+
     input.addEventListener('input', function () {
       var q = input.value.trim();
       if (tmr) { clearTimeout(tmr); }
-      if (q.length < 2) { hide(); return; }
+      requestNumber++;
+      if (activeController) activeController.abort();
+      if (q.length < 2 || !ajax || !window.fetch) { hide(); return; }
       tmr = setTimeout(function () {
+        tmr = 0;
+        var thisRequest = requestNumber;
+        activeController = window.AbortController ? new window.AbortController() : null;
         var url = ajax + '?action=toyota_search_posts&q=' + encodeURIComponent(q) + '&nonce=' + encodeURIComponent(nonce);
-        fetch(url, { credentials: 'same-origin' })
-          .then(function (r) { return r.json(); })
-          .then(function (data) { if (data && data.success) { render(data.data.items || []); } else { hide(); } })
-          .catch(function () { hide(); });
+        var options = { credentials: 'same-origin' };
+        if (activeController) options.signal = activeController.signal;
+        input.setAttribute('aria-busy', 'true');
+        fetch(url, options)
+          .then(function (response) {
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            return response.json();
+          })
+          .then(function (data) {
+            if (thisRequest !== requestNumber) return;
+            if (data && data.success) render((data.data && data.data.items) || []);
+            else hide();
+          })
+          .catch(function (error) {
+            if (thisRequest !== requestNumber || (error && error.name === 'AbortError')) return;
+            hide();
+          });
       }, 200);
     });
-    input.addEventListener('keydown', function (e) { if (e.key === 'Escape') { hide(); } });
-    document.addEventListener('click', function (e) { if (!box.contains(e.target) && e.target !== input) { hide(); } });
-  }
 
-  // Sobre Nosotros: reemplaza imágenes y ajusta si existe la página
-  function initAboutPageTweaks() {
-    var isAbout = document.body.classList.contains('page-template-sobre-nosotros-php') || document.body.classList.contains('page-sobre-nosotros') || document.querySelector('main.about-page');
-    if (!isAbout) return;
-    try {
-      var urls = [
-        'https://arturomerchan.com/wp-content/uploads/2025/11/IMG_0481-scaled.jpg',
-        'https://arturomerchan.com/wp-content/uploads/2025/11/IMG_0611-scaled.jpg',
-        'https://arturomerchan.com/wp-content/uploads/2025/11/IMG_0326-scaled.jpg',
-        'https://arturomerchan.com/wp-content/uploads/2025/11/IMG_0457-scaled.jpg'
-      ];
-      var items = document.querySelectorAll('.about-page .gallery-item');
-      items.forEach(function (item) {
-        var idx = parseInt(item.getAttribute('data-index') || '-1', 10);
-        if (idx >= 0 && urls[idx]) {
-          var img = item.querySelector('img');
-          if (img) { img.src = urls[idx]; }
+    input.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') {
+        cancelAndHide();
+      } else if (event.key === 'ArrowDown' && !box.hidden) {
+        var first = box.querySelector('a');
+        if (first) {
+          event.preventDefault();
+          first.focus();
         }
-      });
-    } catch (e) { }
+      }
+    });
+
+    box.addEventListener('keydown', function (event) {
+      var links = box.querySelectorAll('a');
+      var current = Array.prototype.indexOf.call(links, document.activeElement);
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        cancelAndHide();
+        input.focus();
+      } else if (event.key === 'ArrowDown' && current >= 0) {
+        event.preventDefault();
+        links[(current + 1) % links.length].focus();
+      } else if (event.key === 'ArrowUp' && current >= 0) {
+        event.preventDefault();
+        if (current === 0) input.focus();
+        else links[current - 1].focus();
+      }
+    });
+
+    document.addEventListener('click', function (e) {
+      if (!box.contains(e.target) && e.target !== input) cancelAndHide();
+    });
   }
 
   // Make blog cards clickable (entire card navigates to article)
@@ -713,25 +983,6 @@
         });
       });
     } catch (e) { }
-  }
-
-  function headerMenuToggle() {
-    var header = document.querySelector('.site-header');
-    var btn = document.querySelector('.nav-toggle-modern') || document.querySelector('.nav-toggle');
-    var menu = document.getElementById('site-menu');
-    if (!header || !btn || !menu) return;
-    btn.addEventListener('click', function () {
-      var open = header.classList.toggle('open');
-      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-      setTimeout(setHeaderOffset, 100);
-    });
-    menu.addEventListener('click', function (e) {
-      if (e.target.tagName === 'A' && header.classList.contains('open')) {
-        header.classList.remove('open');
-        btn.setAttribute('aria-expanded', 'false');
-        setTimeout(setHeaderOffset, 100);
-      }
-    });
   }
 
   // Enhanced Smooth Scroll by Sections - Excluir slider inicial
@@ -806,6 +1057,12 @@
     var scrollAttempts = 0;
     var closedByScroll = false;
     var savedScrollY = 0;
+    var lastFocused = null;
+    var backgroundStates = [];
+    var swiperRetries = 0;
+    var focusTimer = null;
+    var savedBodyStyle = null;
+    var savedHtmlOverflow = '';
 
     // Add counter element if not exists
     var counter = lightbox.querySelector('.lightbox-counter');
@@ -813,6 +1070,42 @@
       counter = document.createElement('div');
       counter.className = 'lightbox-counter';
       lightbox.appendChild(counter);
+    }
+    counter.setAttribute('role', 'status');
+    counter.setAttribute('aria-live', 'polite');
+
+    function setBackgroundInert(makeInert) {
+      if (makeInert) {
+        backgroundStates = [];
+        Array.prototype.forEach.call(document.body.children, function (element) {
+          if (element === lightbox || /^(SCRIPT|STYLE|LINK)$/.test(element.tagName)) return;
+          var supportsInert = 'inert' in element;
+          backgroundStates.push({
+            element: element,
+            supportsInert: supportsInert,
+            previousInert: supportsInert ? element.inert : false,
+            previousAriaHidden: element.getAttribute('aria-hidden')
+          });
+          if (supportsInert) element.inert = true;
+          else element.setAttribute('aria-hidden', 'true');
+        });
+        return;
+      }
+
+      backgroundStates.forEach(function (state) {
+        if (state.supportsInert) state.element.inert = state.previousInert;
+        if (state.previousAriaHidden === null) state.element.removeAttribute('aria-hidden');
+        else state.element.setAttribute('aria-hidden', state.previousAriaHidden);
+      });
+      backgroundStates = [];
+    }
+
+    function getFocusableElements() {
+      return Array.prototype.slice.call(lightbox.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )).filter(function (element) {
+        return element.getAttribute('aria-hidden') !== 'true';
+      });
     }
 
     function updateCounter(current, total) {
@@ -824,8 +1117,10 @@
       // Helper to actually create the swipers
       var create = function () {
         if (typeof Swiper === 'undefined') {
-          console.warn('Swiper not loaded yet, retrying...');
-          setTimeout(function () { initSwipers(startIndex); }, 200);
+          if (swiperRetries < 10) {
+            swiperRetries++;
+            setTimeout(function () { initSwipers(startIndex); }, 200);
+          }
           return;
         }
 
@@ -859,12 +1154,10 @@
             },
             thumbs: { swiper: thumbsSwiper },
             keyboard: { enabled: true, onlyInViewport: false },
-            // Eliminamos efecto fade y lazy para evitar pantallas negras
             speed: 400,
-            loop: true,
-            loopedSlides: totalSlides,
-            preloadImages: true,
-            lazy: false,
+            loop: false,
+            rewind: true,
+            preloadImages: false,
             observer: true,
             observeParents: true,
             on: {
@@ -876,25 +1169,18 @@
               init: function () {
                 currentIndex = this.realIndex;
                 updateCounter(currentIndex, totalSlides);
-                // Asegurar carga de imágenes
-                ensureImagesLoaded(this.el);
               }
             }
           });
 
-          // Garantizar carga de todas las imágenes (fallback)
-          function ensureImagesLoaded(root) {
-            var imgs = root.querySelectorAll('img');
-            imgs.forEach(function (img) {
-              if (!img.complete || img.naturalWidth === 0) {
-                var src = img.getAttribute('src');
-                if (src) {
-                  // Forzar recarga
-                  img.setAttribute('src', src + (src.indexOf('?') === -1 ? '?v=' + Date.now() : '&_=' + Date.now()));
-                }
-              }
+          Array.prototype.forEach.call(lightbox.querySelectorAll('.gallery-thumbs [data-gallery-index]'), function (thumbnail) {
+            if (thumbnail.getAttribute('data-gallery-bound') === 'true') return;
+            thumbnail.setAttribute('data-gallery-bound', 'true');
+            thumbnail.addEventListener('click', function () {
+              var index = parseInt(thumbnail.getAttribute('data-gallery-index') || '0', 10);
+              if (gallerySwiper && Number.isFinite(index)) gallerySwiper.slideTo(index);
             });
-          }
+          });
         } catch (err) {
           console.error('Error initializing Gallery Swiper:', err);
         }
@@ -907,9 +1193,14 @@
     function openLightbox(index) {
       currentIndex = index;
       scrollAttempts = 0;
+      swiperRetries = 0;
+      lastFocused = document.activeElement;
+      if (focusTimer) clearTimeout(focusTimer);
       lightbox.classList.add('active');
       // Freeze background scroll reliably
       savedScrollY = window.scrollY || window.pageYOffset || 0;
+      savedBodyStyle = document.body.getAttribute('style');
+      savedHtmlOverflow = document.documentElement.style.overflow;
       document.body.style.position = 'fixed';
       document.body.style.top = (-savedScrollY) + 'px';
       document.body.style.left = '0';
@@ -918,31 +1209,37 @@
       document.body.style.overflow = 'hidden';
       document.documentElement.style.overflow = 'hidden'; // lock html too
       lightbox.setAttribute('aria-hidden', 'false');
+      setBackgroundInert(true);
 
       // Initialize swipers
       initSwipers(index);
 
       // Add wheel event listener
-      setTimeout(function () {
+      focusTimer = setTimeout(function () {
+        focusTimer = null;
+        if (!lightbox.classList.contains('active')) return;
         lightbox.addEventListener('wheel', handleScrollClose, { passive: false });
+        if (closeBtn) closeBtn.focus();
+        else lightbox.focus();
       }, 300);
     }
 
     // Close lightbox
     function closeLightbox() {
+      if (focusTimer) {
+        clearTimeout(focusTimer);
+        focusTimer = null;
+      }
       lightbox.classList.remove('active');
       // Restore background scroll position exactly
       // Temporarily disable smooth scroll to avoid visible animation
       var prevScrollBehavior = document.documentElement.style.scrollBehavior;
       document.documentElement.style.scrollBehavior = 'auto';
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
-      document.body.style.right = '';
-      document.body.style.width = '';
+      if (savedBodyStyle === null) document.body.removeAttribute('style');
+      else document.body.setAttribute('style', savedBodyStyle);
+      document.documentElement.style.overflow = savedHtmlOverflow;
       lightbox.setAttribute('aria-hidden', 'true');
+      setBackgroundInert(false);
 
       // Remove wheel listener
       lightbox.removeEventListener('wheel', handleScrollClose);
@@ -959,6 +1256,10 @@
       // Restore previous scroll-behavior on next tick
       setTimeout(function () { document.documentElement.style.scrollBehavior = prevScrollBehavior || ''; }, 0);
       closedByScroll = false; // reset flag
+      if (lastFocused && typeof lastFocused.focus === 'function') {
+        try { lastFocused.focus(); } catch (focusError) { }
+      }
+      lastFocused = null;
     }
 
     // Handle scroll to close
@@ -983,8 +1284,13 @@
       var items = document.querySelectorAll('.gallery-item');
       items.forEach(function (item) {
         item.style.cursor = 'pointer';
+        if (!item.hasAttribute('role')) item.setAttribute('role', 'button');
+        if (!item.hasAttribute('tabindex')) item.setAttribute('tabindex', '0');
+        item.setAttribute('aria-haspopup', 'dialog');
+        item.setAttribute('aria-controls', lightbox.id);
         // Remove old listeners to avoid duplicates
         item.removeEventListener('click', item._galleryClickHandler);
+        item.removeEventListener('keydown', item._galleryKeyHandler);
 
         item._galleryClickHandler = function (e) {
           if (item.tagName === 'A' && item.getAttribute('href') === '#') {
@@ -996,6 +1302,13 @@
         };
 
         item.addEventListener('click', item._galleryClickHandler);
+        item._galleryKeyHandler = function (event) {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            item.click();
+          }
+        };
+        item.addEventListener('keydown', item._galleryKeyHandler);
       });
     }
 
@@ -1025,10 +1338,28 @@
       }
     });
 
-    // Close on Escape key
+    // Close on Escape and keep keyboard focus inside the modal.
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+      if (!lightbox.classList.contains('active')) return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
         closeLightbox();
+      } else if (e.key === 'Tab') {
+        var focusable = getFocusableElements();
+        if (!focusable.length) {
+          e.preventDefault();
+          lightbox.focus();
+          return;
+        }
+        var first = focusable[0];
+        var last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
       }
     });
 
@@ -1044,16 +1375,10 @@
   document.addEventListener('DOMContentLoaded', initVehiculosLoadMore);
   // DISABLED: Scroll animations that hide content until scroll intersection
   // document.addEventListener('DOMContentLoaded', revealOnView);
-  document.addEventListener('DOMContentLoaded', headerScroll);
-  document.addEventListener('DOMContentLoaded', headerMenuToggle);
-  document.addEventListener('DOMContentLoaded', setHeaderOffset);
   document.addEventListener('DOMContentLoaded', initBlogInfinite);
   document.addEventListener('DOMContentLoaded', initBlogSearch);
-  document.addEventListener('DOMContentLoaded', initAboutPageTweaks);
   document.addEventListener('DOMContentLoaded', initBlogCards);
   document.addEventListener('DOMContentLoaded', initGalleryLightbox);
   // DISABLED: Scroll section animations for better mobile usability
   // document.addEventListener('DOMContentLoaded', initSectionScroll);
-  window.addEventListener('resize', setHeaderOffset);
 })();
-

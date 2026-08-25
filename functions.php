@@ -5,11 +5,7 @@
  * This file is now modularized. Please check the 'inc' directory for specific functionality.
  */
 
-// Suppress server connection warnings on frontend
-@ini_set('display_errors', 0);
-error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
-
-define('TOYOTA_MONAGAS_VERSION', '1.0.0');
+define('TOYOTA_MONAGAS_VERSION', '1.2.0');
 
 // Setup and Enqueues
 require_once get_template_directory() . '/inc/setup.php';
@@ -35,4 +31,3 @@ require_once get_template_directory() . '/inc/contact-system.php';
 
 // Customizer Options
 require_once get_template_directory() . '/inc/customizer.php';
-

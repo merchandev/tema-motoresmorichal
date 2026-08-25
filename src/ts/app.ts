@@ -1,43 +1,11 @@
-import Swiper from 'swiper'
-import 'swiper/css'
-
-// Type declaration for global Swiper
-declare const Swiper: any
-
-// Slider principal de videos
-const hero = document.querySelector('#custom-slider')
-if (hero) {
-  // eslint-disable-next-line no-new
-  new Swiper('#custom-slider', {
-    loop: false,
-    navigation: { nextEl: '.cs-swiper-button-next', prevEl: '.cs-swiper-button-prev' },
-    observer: true,
-    observeParents: true,
-  })
-}
-
-// Carrusel de vehículos
-const vehiculos = document.querySelector('#vehiculos .toyota-slider')
-if (vehiculos) {
-  // eslint-disable-next-line no-new
-  new Swiper('#vehiculos .toyota-slider', {
-    spaceBetween: 20,
-    navigation: {
-      nextEl: '#vehiculos .toyota-arrow.swiper-button-next',
-      prevEl: '#vehiculos .toyota-arrow.swiper-button-prev'
-    },
-    breakpoints: { 0: { slidesPerView: 1 }, 768: { slidesPerView: 2 }, 1024: { slidesPerView: 3 } }
-  })
-}
-
 // ==========================================
 // VEHICLE COLOR SELECTOR - ISOLATED MODULE
 // ==========================================
 
-interface ColorButton extends HTMLButtonElement {
-  dataset: {
-    img: string
-    name: string
+type ColorButton = HTMLButtonElement & {
+  dataset: DOMStringMap & {
+    img?: string
+    name?: string
   }
 }
 
@@ -57,7 +25,9 @@ class VehicleColorSelector {
   }
 
   private init(): void {
-    if (this.colorButtons.length === 0) return
+    const browserWindow = window as Window & { vpColorInit?: boolean }
+    if (browserWindow.vpColorInit) return
+    browserWindow.vpColorInit = true
 
     this.colorButtons.forEach(btn => {
       btn.addEventListener('click', () => this.handleColorClick(btn))
@@ -70,10 +40,14 @@ class VehicleColorSelector {
 
   private handleColorClick(clickedBtn: ColorButton): void {
     // Remove active state from all buttons
-    this.colorButtons.forEach(btn => btn.classList.remove('is-active'))
+    this.colorButtons.forEach(btn => {
+      btn.classList.remove('active', 'is-active')
+      btn.setAttribute('aria-pressed', 'false')
+    })
 
     // Add active state to clicked button
-    clickedBtn.classList.add('is-active')
+    clickedBtn.classList.add('active', 'is-active')
+    clickedBtn.setAttribute('aria-pressed', 'true')
 
     // Update color name
     if (this.colorName && clickedBtn.dataset.name) {
@@ -81,29 +55,31 @@ class VehicleColorSelector {
     }
 
     // Update image with fade transition
-    if (this.mainImage && clickedBtn.dataset.img) {
+    const imageUrl = clickedBtn.dataset.img
+    if (this.mainImage && imageUrl) {
       this.mainImage.style.opacity = '0'
       setTimeout(() => {
         if (this.mainImage) {
-          this.mainImage.src = clickedBtn.dataset.img
+          this.mainImage.src = imageUrl
           this.mainImage.style.opacity = '1'
         }
       }, 200)
     }
   }
 
-  private handleCTAClick(e: Event): void {
-    e.preventDefault()
-
+  private handleCTAClick(_event: Event): void {
     const activeSwatch = document.querySelector<ColorButton>('.vp-color-btn.is-active')
     const colorName = activeSwatch?.dataset.name || ''
     const modelo = this.ctaButton?.dataset.modelo || ''
     const version = this.ctaButton?.dataset.version || ''
+    const isUsed = this.ctaButton?.dataset.usado === 'true'
+    const intent = isUsed ? 'consultar disponibilidad del vehículo usado' : 'cotizar el vehículo'
 
-    const txt = `Hola, quisiera cotizar el ${modelo} ${version ? '(' + version + ')' : ''} en color ${colorName}.`
+    const color = colorName ? ` en color ${colorName}` : ''
+    const txt = `Hola, quisiera ${intent}: ${modelo}${version ? ' (' + version + ')' : ''}${color}.`
 
     if (this.ctaButton?.dataset.wa) {
-      window.open(this.ctaButton.dataset.wa + encodeURIComponent(txt), '_blank')
+      this.ctaButton.href = this.ctaButton.dataset.wa + encodeURIComponent(txt)
     }
   }
 }

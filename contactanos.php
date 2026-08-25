@@ -5,6 +5,7 @@ Template Name: Contáctanos
 get_header(); ?>
 
 <main id="site-main">
+  <h1 class="sr-only">Contáctanos</h1>
   <!-- Encabezado de contacto (títulos en negro) + Formulario centrado -->
   <section id="contacto-header" class="contacto-header">
     <header class="section-header">
@@ -20,7 +21,7 @@ get_header(); ?>
   <!-- Descripción y recomendaciones (debajo del formulario) -->
   <section id="contacto-info" class="contacto-info">
     <div class="container">
-      <h3 class="contacto-info__title">Atención al Cliente</h3>
+      <h2 class="contacto-info__title">Atención al Cliente</h2>
       <p>Estamos aquí para ayudarte. Escríbenos por WhatsApp y te respondemos a la brevedad.</p>
       <p>Utilizando el siguiente formulario podrás ponerte en contacto con nosotros para realizar cualquier consulta o comentario sobre la atención al cliente y/o nuestros concesionarios autorizados. Nuestro personal se comunicará contigo a la brevedad posible.</p>
       <ul class="contacto-lista">
@@ -96,6 +97,7 @@ get_header(); ?>
     <div class="container">
       <div class="map-frame" aria-label="Mapa: Toyota - Motores Morichal">
         <iframe
+          title="Mapa de Toyota - Motores Morichal"
           loading="lazy"
           allowfullscreen
           referrerpolicy="no-referrer-when-downgrade"

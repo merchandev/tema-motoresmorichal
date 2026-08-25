@@ -1,3 +1,7 @@
+/* Canonical build entry: keep the proven runtime styles while they are migrated. */
+@import "swiper/css/bundle";
+@import "../../assets/css/front.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

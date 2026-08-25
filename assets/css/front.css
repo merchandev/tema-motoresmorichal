@@ -746,12 +746,6 @@
   font-size: 18px;
 }
 
-@media (max-width:1023px) {
-  #vehiculos .toyota-arrow {
-    display: none !important;
-  }
-}
-
 /* vehicles section container */
 /* Centrado y contención de la sección de modelos */
 #vehiculos {
@@ -782,7 +776,7 @@
 ========================== */
 #accesorios-mm {
   position: relative;
-  background-image: url('https://tmna.aemassets.toyota.com/is/image/toyota/toyota/vehicles/2026/corolla/galleries/COH_MY26_0011_V001.png:tcom_gallery_16x9?ts=1757531815331&fmt=jpg&fit=crop&dpr=on,2');
+  background-image: url('../img/home/yaris-cross-thumb.png');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -1172,19 +1166,23 @@
   user-select: none;
 }
 
-.gallery-item:hover .gallery-overlay {
+.gallery-item:hover .gallery-overlay,
+.gallery-item:focus-visible .gallery-overlay {
   opacity: 1;
 }
 
-.gallery-overlay i {
+.gallery-overlay :is(i, .tm-icon) {
   color: #fff;
   font-size: 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
   transform: scale(0.8);
   transition: transform 0.3s ease;
   pointer-events: none;
 }
 
-.gallery-item:hover .gallery-overlay i {
+.gallery-item:hover .gallery-overlay :is(i, .tm-icon),
+.gallery-item:focus-visible .gallery-overlay :is(i, .tm-icon) {
   transform: scale(1);
 }
 
@@ -1423,10 +1421,28 @@
   position: relative;
 }
 
+.gallery-thumb-button {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.gallery-thumb-button:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: -4px;
+}
+
 .gallery-thumbs .swiper-slide::before {
   content: '';
   position: absolute;
   inset: 0;
+  pointer-events: none;
   background: linear-gradient(135deg, transparent, rgba(235, 10, 30, 0.2));
   opacity: 0;
   transition: opacity 0.3s ease;

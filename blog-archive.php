@@ -17,32 +17,49 @@ get_header(); ?>
       <span class="kicker">Noticias</span>
       <h1 class="entry-title">Historias y novedades Toyota</h1>
       <p>Lo más reciente de Motores Morichal</p>
-      <div id="blog-search" class="blog-search" role="search">
+      <form id="blog-search" class="blog-search" role="search" method="get" action="<?php echo esc_url(home_url('/')); ?>"
+        data-ajax-url="<?php echo esc_url(admin_url('admin-ajax.php')); ?>"
+        data-nonce="<?php echo esc_attr(wp_create_nonce('toyota_front_nonce')); ?>">
         <label for="blog-search-input" class="sr-only">Buscar artículos</label>
-        <input id="blog-search-input" type="search" placeholder="Buscar artículos…" autocomplete="off" />
+        <input id="blog-search-input" name="s" type="search" maxlength="100" placeholder="Buscar artículos…" autocomplete="off"
+          aria-controls="blog-search-suggest" />
+        <button type="submit" class="sr-only">Buscar</button>
         <div id="blog-search-suggest" class="blog-search-suggest" hidden aria-live="polite"></div>
-      </div>
+      </form>
     </header>
 
     <?php
-    // Featured: último post publicado
+    // Logical page 1 contains one featured post plus nine cards. Every
+    // subsequent page contains ten cards and is also reachable without JS.
+    $ppp = 10;
+    $total_posts = (int) wp_count_posts('post')->publish;
+    $remaining_after_initial = max(0, $total_posts - 10);
+    $max_logical_page = max(1, 1 + (int) ceil($remaining_after_initial / $ppp));
+    $blog_page = min(
+      max(1, absint(toyota_monagas_request_scalar($_GET, 'blog_page', '1'))),
+      $max_logical_page
+    );
+
+    // The latest post is featured only on the first logical page.
+    if ($blog_page === 1) :
     $featured_q = new WP_Query(array(
       'post_type'      => 'post',
       'post_status'    => 'publish',
       'posts_per_page' => 1,
       'orderby'        => 'date',
       'order'          => 'DESC',
+      'ignore_sticky_posts' => true,
     ));
     if ($featured_q->have_posts()) : $featured_q->the_post();
-      $img_alt = esc_attr(get_the_title());
+      $img_alt = get_the_title();
       $has_thumb = has_post_thumbnail();
       ?>
       <article class="blog-featured">
         <div class="bf-link">
           <figure class="bf-media">
             <a href="<?php the_permalink(); ?>" aria-label="<?php the_title_attribute(); ?>">
-              <?php if ($has_thumb) { the_post_thumbnail('large', array('alt'=>$img_alt)); } else { ?>
-                <img src="https://picsum.photos/seed/<?php echo (int)get_the_ID(); ?>/1200/650" alt="<?php echo $img_alt; ?>" />
+              <?php if ($has_thumb) { the_post_thumbnail('large', array('alt'=>$img_alt, 'fetchpriority'=>'high')); } else { ?>
+                <img src="<?php echo esc_url(toyota_monagas_placeholder_image_url()); ?>" alt="<?php echo esc_attr($img_alt); ?>" fetchpriority="high" decoding="async" />
               <?php } ?>
             </a>
           </figure>
@@ -53,33 +70,36 @@ get_header(); ?>
           </div>
         </div>
       </article>
-    <?php wp_reset_postdata(); endif; ?>
+    <?php wp_reset_postdata(); endif; endif; ?>
 
     <?php
-      // Inicial: 9 posts siguientes (para completar 10 junto al destacado)
-      $ppp = 10; $offset = 1;
+      $list_limit = $blog_page === 1 ? 9 : $ppp;
+      $offset = $blog_page === 1 ? 1 : 10 + (($blog_page - 2) * $ppp);
       $list_q = new WP_Query(array(
         'post_type'      => 'post',
         'post_status'    => 'publish',
-        'posts_per_page' => $ppp - 1,
+        'posts_per_page' => $list_limit,
         'offset'         => $offset,
         'orderby'        => 'date',
         'order'          => 'DESC',
+        'ignore_sticky_posts' => true,
       ));
     ?>
 
-    <section class="blog-list" id="blog-list" data-page="2" data-max="<?php echo esc_attr( (int) ceil( max(0, (int)wp_count_posts('post')->publish - 1) / $ppp ) ); ?>">
+    <section class="blog-list" id="blog-list" data-page="<?php echo esc_attr($blog_page + 1); ?>" data-max="<?php echo esc_attr($max_logical_page); ?>"
+      data-ajax-url="<?php echo esc_url(admin_url('admin-ajax.php')); ?>"
+      data-nonce="<?php echo esc_attr(wp_create_nonce('toyota_front_nonce')); ?>" aria-live="polite">
       <?php if ($list_q->have_posts()) : while ($list_q->have_posts()) : $list_q->the_post();
-        $img_alt = esc_attr(get_the_title()); $has_thumb = has_post_thumbnail(); ?>
+        $img_alt = get_the_title(); $has_thumb = has_post_thumbnail(); ?>
         <article class="blog-mini">
           <a class="blog-mini-link" href="<?php the_permalink(); ?>" aria-label="<?php the_title_attribute(); ?>">
             <figure class="blog-mini-img">
-              <?php if ($has_thumb) { the_post_thumbnail('large', array('alt'=>$img_alt)); } else { ?>
-                <img src="https://picsum.photos/seed/<?php echo (int)get_the_ID(); ?>/600/400" alt="<?php echo $img_alt; ?>" />
+              <?php if ($has_thumb) { the_post_thumbnail('large', array('alt'=>$img_alt, 'loading'=>'lazy', 'decoding'=>'async')); } else { ?>
+                <img src="<?php echo esc_url(toyota_monagas_placeholder_image_url()); ?>" alt="<?php echo esc_attr($img_alt); ?>" loading="lazy" decoding="async" />
               <?php } ?>
             </figure>
             <div class="blog-mini-body">
-              <h4 class="blog-mini-title"><?php the_title(); ?></h4>
+              <h2 class="blog-mini-title"><?php the_title(); ?></h2>
               <p class="blog-mini-excerpt"><?php echo wp_kses_post( wp_trim_words( get_the_excerpt(), 30, '…' ) ); ?></p>
             </div>
           </a>
@@ -90,6 +110,26 @@ get_header(); ?>
     </section>
 
     <div id="blog-sentinel" aria-hidden="true" style="height:1px"></div>
+
+    <?php
+      $blog_base_url = get_permalink(get_queried_object_id());
+      if (!$blog_base_url) $blog_base_url = home_url('/blog/');
+      $previous_url = $blog_page > 2
+        ? add_query_arg('blog_page', $blog_page - 1, $blog_base_url)
+        : $blog_base_url;
+      $next_url = add_query_arg('blog_page', $blog_page + 1, $blog_base_url);
+    ?>
+    <?php if ($max_logical_page > 1) : ?>
+      <nav class="blog-pagination" aria-label="Paginación de artículos">
+        <?php if ($blog_page > 1) : ?>
+          <a class="tm-btn tm-btn--secondary" href="<?php echo esc_url($previous_url); ?>" rel="prev">Artículos anteriores</a>
+        <?php endif; ?>
+        <span aria-live="polite">Página <?php echo esc_html($blog_page); ?> de <?php echo esc_html($max_logical_page); ?></span>
+        <?php if ($blog_page < $max_logical_page) : ?>
+          <a class="tm-btn tm-btn--primary" href="<?php echo esc_url($next_url); ?>" rel="next">Más artículos</a>
+        <?php endif; ?>
+      </nav>
+    <?php endif; ?>
   </div>
 </main>
 

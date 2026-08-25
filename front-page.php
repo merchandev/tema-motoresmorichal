@@ -1,26 +1,15 @@
-<?php get_header(); ?>
-
 <?php
-// Helper para renderizar video o imagen según la extensión o ID de adjunto
-function tm_render_slide_media($url_or_id, $is_mobile = false) {
-    if (empty($url_or_id)) return '';
-    
-    // Si WP_Customize_Media_Control guarda un ID numérico, obtenemos la URL real
-    $url = is_numeric($url_or_id) ? wp_get_attachment_url($url_or_id) : $url_or_id;
-    if (empty($url)) return '';
-
-    $ext = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION);
-    $class = $is_mobile ? 'cs-video-bg mobile-media' : 'cs-video-bg desktop-media';
-    
-    if (in_array(strtolower($ext), ['mp4', 'webm', 'ogg'])) {
-        return '<video class="'.$class.'" muted playsinline preload="metadata" data-src="'.esc_url($url).'" crossorigin="anonymous"></video>';
-    } else {
-        return '<img class="'.$class.'" src="'.esc_url($url).'" alt="Toyota Slide" style="object-fit: cover; width: 100%; height: 100%;">';
-    }
-}
+get_header();
+$tm_repuestos_url = toyota_monagas_whatsapp_url(
+  'Hola, necesito solicitar repuestos originales Toyota. ¿Podrían ayudarme?'
+);
+$tm_servicio_url = toyota_monagas_whatsapp_url(
+  'Hola, me gustaría agendar una cita para el servicio de mi Toyota. ¿Cuál es la disponibilidad?'
+);
 ?>
 
 <main id="site-main" class="vehiculo-premium-white">
+  <h1 class="sr-only">Motores Morichal, concesionario Toyota en Maturín</h1>
   <!-- Slider de videos -->
   <div id="custom-slider" class="custom-slider swiper" role="region" aria-label="Slider principal Toyota">
     <div class="swiper-wrapper">
@@ -54,6 +43,8 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
               $btn_text = get_post_meta($post_id, 'slide_btn_text', true);
               $btn_link = get_post_meta($post_id, 'slide_btn_link', true);
               $btn_target = get_post_meta($post_id, 'slide_btn_target', true) == '1' ? '_blank' : '_self';
+              $image_loading = $slide_count === 0 ? 'eager' : 'lazy';
+              $image_priority = $slide_count === 0 ? 'high' : 'low';
               ?>
               <div class="swiper-slide cs-slide" data-index="<?php echo $slide_count; ?>" data-type="<?php echo esc_attr($type); ?>">
                 <?php if ($type === 'video' && !empty($video_url)) : ?>
@@ -62,10 +53,10 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
                   <?php if ($img_mobile && $img_mobile !== $img_desktop): ?>
                   <picture class="cs-picture-bg" style="position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; display: block;">
                     <source media="(max-width: 768px)" srcset="<?php echo esc_url($img_mobile); ?>">
-                    <img class="cs-video-bg" src="<?php echo esc_url($img_desktop); ?>" alt="<?php echo esc_attr($title); ?>" style="object-fit: cover; width: 100%; height: 100%;">
+                    <img class="cs-video-bg" src="<?php echo esc_url($img_desktop); ?>" alt="<?php echo esc_attr($title); ?>" loading="<?php echo esc_attr($image_loading); ?>" fetchpriority="<?php echo esc_attr($image_priority); ?>" decoding="async" style="object-fit: cover; width: 100%; height: 100%;">
                   </picture>
                   <?php else: ?>
-                    <img class="cs-video-bg desktop-media" src="<?php echo esc_url($img_desktop); ?>" alt="<?php echo esc_attr($title); ?>" style="object-fit: cover; width: 100%; height: 100%;">
+                    <img class="cs-video-bg desktop-media" src="<?php echo esc_url($img_desktop); ?>" alt="<?php echo esc_attr($title); ?>" loading="<?php echo esc_attr($image_loading); ?>" fetchpriority="<?php echo esc_attr($image_priority); ?>" decoding="async" style="object-fit: cover; width: 100%; height: 100%;">
                   <?php endif; ?>
                 <?php endif; ?>
                 
@@ -73,7 +64,7 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
                   <h2><?php echo esc_html($title); ?></h2>
                   <?php if ($desc) : ?><p><?php echo esc_html($desc); ?></p><?php endif; ?>
                   <?php if ($btn_text && $btn_link) : ?>
-                    <a href="<?php echo esc_url($btn_link); ?>" class="cs-btn-slide" target="<?php echo esc_attr($btn_target); ?>"><?php echo esc_html($btn_text); ?></a>
+                    <a href="<?php echo esc_url($btn_link); ?>" class="cs-btn-slide" target="<?php echo esc_attr($btn_target); ?>"<?php echo $btn_target === '_blank' ? ' rel="noopener noreferrer"' : ''; ?>><?php echo esc_html($btn_text); ?></a>
                   <?php endif; ?>
                 </div>
               </div>
@@ -85,7 +76,7 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
           // Fallback if no slides exist
           ?>
           <div class="swiper-slide cs-slide" data-index="0" data-type="video">
-            <video class="cs-video-bg" muted playsinline preload="metadata" data-src="https://mmorichal.com/wp-content/uploads/2026/03/toyota-monagas-maturin-venezuela-actulizacion-de-edificio.mp4" crossorigin="anonymous"></video>
+            <video class="cs-video-bg" muted playsinline preload="metadata" data-src="<?php echo esc_url(get_theme_file_uri('/assets/video/home/video-fortuner.mp4')); ?>"></video>
             <div class="cs-slide-content cs-left animate-in">
               <h2>Bienvenidos a Motores Morichal</h2>
               <p>Por favor, añade un slide desde el panel de control.</p>
@@ -98,8 +89,9 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
     </div>
 
     <!-- Flechas -->
-    <div class="cs-swiper-button-prev swiper-button-prev" aria-label="Anterior"></div>
-    <div class="cs-swiper-button-next swiper-button-next" aria-label="Siguiente"></div>
+    <div class="cs-swiper-button-prev swiper-button-prev" role="button" tabindex="0" aria-label="Slide anterior"></div>
+    <div class="cs-swiper-button-next swiper-button-next" role="button" tabindex="0" aria-label="Slide siguiente"></div>
+    <button type="button" class="cs-play-toggle" aria-pressed="false" aria-label="Pausar slider">Pausar</button>
 
     <!-- Barras de progreso -->
     <div class="cs-progress-bars">
@@ -117,19 +109,19 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
       <p>Explora por categoría el Toyota ideal para ti</p>
     </header>
     <nav class="toyota-nav" aria-label="Categor&iacute;as de veh&iacute;culos">
-      <div class="toyota-tabs" role="tablist">
-        <button class="toyota-tab is-active" data-cat="cars" aria-selected="true">Camioneta</button>
-        <button class="toyota-tab" data-cat="trucks" aria-selected="false">Pasajero</button>
-        <button class="toyota-tab" data-cat="crossovers" aria-selected="false">Pick Ups</button>
-        <button class="toyota-tab" data-cat="electrified" aria-selected="false">Comercial</button>
+      <div class="toyota-tabs" role="tablist" aria-label="Tipo de vehículo">
+        <button type="button" id="toyota-tab-cars" class="toyota-tab is-active" role="tab" data-cat="cars" aria-controls="toyota-vehicle-panel" aria-selected="true" tabindex="0">Camioneta</button>
+        <button type="button" id="toyota-tab-trucks" class="toyota-tab" role="tab" data-cat="trucks" aria-controls="toyota-vehicle-panel" aria-selected="false" tabindex="-1">Pasajero</button>
+        <button type="button" id="toyota-tab-crossovers" class="toyota-tab" role="tab" data-cat="crossovers" aria-controls="toyota-vehicle-panel" aria-selected="false" tabindex="-1">Pick Ups</button>
+        <button type="button" id="toyota-tab-electrified" class="toyota-tab" role="tab" data-cat="electrified" aria-controls="toyota-vehicle-panel" aria-selected="false" tabindex="-1">Comercial</button>
         <span class="toyota-tab-indicator"></span>
       </div>
     </nav>
 
-    <div class="toyota-slider swiper">
+    <div id="toyota-vehicle-panel" class="toyota-slider swiper" role="tabpanel" aria-labelledby="toyota-tab-cars">
       <div class="swiper-wrapper"></div>
-      <div class="toyota-arrow swiper-button-prev"></div>
-      <div class="toyota-arrow swiper-button-next"></div>
+      <div class="toyota-arrow swiper-button-prev" role="button" tabindex="0" aria-label="Vehículo anterior"></div>
+      <div class="toyota-arrow swiper-button-next" role="button" tabindex="0" aria-label="Vehículo siguiente"></div>
     </div>
 
     <div class="toyota-templates" hidden aria-hidden="true">
@@ -141,11 +133,14 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
         'Pick Ups'  => 'crossovers',
         'Comercial' => 'electrified',
     );
-      // Query vehicles (published)
+      // Keep homepage HTML bounded; full inventory remains on catalog pages.
+      $home_vehicle_limit = absint(apply_filters('toyota_home_vehicle_limit', 48));
+      $home_vehicle_limit = max(4, min(100, $home_vehicle_limit));
       $veh_q = new WP_Query(array(
           'post_type' => 'vehiculo',
-          'posts_per_page' => -1,
+          'posts_per_page' => $home_vehicle_limit,
           'post_status' => 'publish',
+          'no_found_rows' => true,
       ));
       if ($veh_q->have_posts()) :
         while ($veh_q->have_posts()) : $veh_q->the_post();
@@ -158,11 +153,12 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
             $cols = get_post_meta($post_id, 'veh_colores', true);
             if (!empty($cols) && is_array($cols) && !empty($cols[0]['img'])) $thumb = esc_url($cols[0]['img']);
           }
-          if (!$thumb) $thumb = 'https://picsum.photos/seed/'.intval($post_id).'/800/600';
+          if (!$thumb) $thumb = toyota_monagas_placeholder_image_url();
           // Determine category
           $terms = wp_get_post_terms($post_id, 'vehiculo_categoria', array('fields'=>'names'));
           $term_name = (!empty($terms) && is_array($terms)) ? $terms[0] : '';
           $data_cat = isset($cat_map[$term_name]) ? $cat_map[$term_name] : 'cars';
+          $wa_fallback = toyota_monagas_whatsapp_url('Hola, quisiera cotizar el ' . $title . '.');
       ?>
       <template data-cat="<?php echo esc_attr($data_cat); ?>">
         <article class="toyota-card">
@@ -180,10 +176,7 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
             <div class="toyota-buttons">
               <a href="<?php echo esc_url(get_permalink($post_id)); ?>" class="toyota-btn">M&aacute;s informaci&oacute;n <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="16" height="16" style="display:inline-block;vertical-align:middle;"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></a>
               <span class="toyota-contact">
-                <a href="#" class="js-whatsapp-link" 
-                   data-wa="https://wa.me/584249090679?text=" 
-                   data-modelo="<?php echo esc_attr($title); ?>" 
-                   data-version="">Cont&aacute;ctanos &gt;</a>
+                <a href="<?php echo esc_url($wa_fallback); ?>" target="_blank" rel="noopener noreferrer">Cont&aacute;ctanos &gt;</a>
               </span>
             </div>
           </div>
@@ -205,7 +198,7 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
       <div class="accesorios-content">
         <h2>Accesorios Originales Toyota</h2>
         <p>Equipa tu Toyota con accesorios dise&ntilde;ados para potenciar estilo, comodidad y seguridad, siempre con la calidad original.</p>
-        <a href="https://www.toyota.com.ve/mi-toyota/accesorios" class="accesorio-btn" target="_blank" rel="noopener">Explorar Accesorios <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="16" height="16" style="display:inline-block;vertical-align:middle;"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></a>
+        <a href="https://www.toyota.com.ve/mi-toyota/accesorios" class="accesorio-btn" target="_blank" rel="noopener noreferrer">Explorar Accesorios <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="16" height="16" style="display:inline-block;vertical-align:middle;"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></a>
       </div>
     </div>
   </section>
@@ -226,7 +219,7 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
         </div>
         <h3>Veh&iacute;culos</h3>
         <p>Descubre toda la gama de veh&iacute;culos disponibles, pensados para tu estilo de vida.</p>
-        <a href="/vehiculos/" class="service-btn">Explorar <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="16" height="16" style="display:inline-block;vertical-align:middle;"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></a>
+        <a href="<?php echo esc_url(home_url('/vehiculos/')); ?>" class="service-btn">Explorar <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="16" height="16" style="display:inline-block;vertical-align:middle;"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></a>
       </div>
       <div class="service-card">
         <div class="service-icon">
@@ -236,7 +229,7 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
         </div>
         <h3>Repuestos</h3>
         <p>Solicita repuestos originales Toyota con garant&iacute;a y confianza asegurada.</p>
-        <a href="https://wa.me/584249090679?text=Hola%2C%20necesito%20solicitar%20repuestos%20originales%20Toyota.%20¿Podrían%20ayudarme%3F" target="_blank" rel="noopener" class="service-btn">Pedir repuestos <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="16" height="16" style="display:inline-block;vertical-align:middle;"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></a>
+        <a href="<?php echo esc_url($tm_repuestos_url); ?>" target="_blank" rel="noopener noreferrer" class="service-btn">Pedir repuestos <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="16" height="16" style="display:inline-block;vertical-align:middle;"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></a>
       </div>
       <div class="service-card">
         <div class="service-icon">
@@ -246,7 +239,7 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
         </div>
         <h3>Servicio</h3>
         <p>Mantenimiento, revisi&oacute;n y asistencia t&eacute;cnica especializada para tu Toyota.</p>
-        <a href="https://wa.me/584249090679?text=Hola%2C%20me%20gustaría%20agendar%20una%20cita%20para%20el%20servicio%20de%20mi%20Toyota.%20¿Cuál%20es%20la%20disponibilidad%3F" target="_blank" rel="noopener" class="service-btn">Agendar cita <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="16" height="16" style="display:inline-block;vertical-align:middle;"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></a>
+        <a href="<?php echo esc_url($tm_servicio_url); ?>" target="_blank" rel="noopener noreferrer" class="service-btn">Agendar cita <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="16" height="16" style="display:inline-block;vertical-align:middle;"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></a>
       </div>
 
     </div>
@@ -263,155 +256,65 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
       <div class="sobre-nosotros-text">
         <h2>Sobre Nosotros</h2>
         <p>Con el paso del tiempo y el incremento de su actividad comercial, así como de la demanda de sus productos y servicios, la empresa tomó la decisión de trasladarse nuevamente a una sede más moderna y funcional. Actualmente, sus instalaciones se encuentran ubicadas en la Avenida Alirio Ugarte Pelayo, en el sector Tipuro, en un edificio propio identificado como "Motores Morichal". Esta sede cuenta con una amplia exhibición de vehículos de la reconocida marca Toyota, además de ofrecer al público servicio autorizado de taller, venta de repuestos y accesorios originales, consolidándose como un centro integral de atención para los usuarios de esta marca en la región.</p>
-        <a href="/sobre-nosotros/" class="sobre-nosotros-btn">M&aacute;s informaci&oacute;n <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="16" height="16" style="display:inline-block;vertical-align:middle;"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></a>
+        <a href="<?php echo esc_url(home_url('/sobre-nosotros/')); ?>" class="sobre-nosotros-btn">M&aacute;s informaci&oacute;n <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="16" height="16" style="display:inline-block;vertical-align:middle;"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></a>
       </div>
+      <?php
+      $tm_home_gallery = array(
+        array('src' => get_theme_file_uri('/assets/img/home/gallery-1.jpg'), 'alt' => 'Motores Morichal - Instalaciones'),
+        array('src' => get_theme_file_uri('/assets/img/home/gallery-2.jpg'), 'alt' => 'Motores Morichal - Showroom'),
+        array('src' => get_theme_file_uri('/assets/img/home/gallery-3.jpg'), 'alt' => 'Motores Morichal - Atención'),
+        array('src' => get_theme_file_uri('/assets/img/home/yaris-cross-thumb.png'), 'alt' => 'Toyota Yaris Cross'),
+        array('src' => get_theme_file_uri('/assets/img/home/gallery-4.jpg'), 'alt' => 'Motores Morichal - Servicio'),
+        array('src' => get_theme_file_uri('/assets/img/home/gallery-5.jpg'), 'alt' => 'Motores Morichal - Concesionario'),
+        array('src' => get_theme_file_uri('/assets/img/home/gallery-6.jpg'), 'alt' => 'Motores Morichal - Vehículos'),
+        array('src' => get_theme_file_uri('/assets/img/home/gallery-7.jpg'), 'alt' => 'Motores Morichal - Experiencia'),
+        array('src' => get_theme_file_uri('/assets/img/home/gallery-8.jpg'), 'alt' => 'Motores Morichal - Interior'),
+        array('src' => get_theme_file_uri('/assets/img/home/gallery-9.jpg'), 'alt' => 'Motores Morichal - Venta'),
+      );
+      ?>
       <div class="sobre-nosotros-images gallery-grid">
-        <div class="img img1 gallery-item" data-index="0">
-          <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-1.jpg" alt="Motores Morichal - Instalaciones" loading="lazy">
-          <div class="gallery-overlay">
-            <i class="fas fa-search-plus"></i>
+        <?php foreach (array_slice($tm_home_gallery, 0, 3) as $index => $image) : ?>
+          <div class="img img<?php echo esc_attr($index + 1); ?> gallery-item" data-index="<?php echo esc_attr($index); ?>" role="button" tabindex="0"
+            aria-haspopup="dialog" aria-controls="gallery-lightbox" aria-label="<?php echo esc_attr('Ampliar ' . $image['alt']); ?>">
+            <img src="<?php echo esc_url($image['src']); ?>" alt="<?php echo esc_attr($image['alt']); ?>" loading="lazy" decoding="async">
+            <div class="gallery-overlay"><?php echo toyota_monagas_icon('zoom'); ?></div>
           </div>
-        </div>
-        <div class="img img2 gallery-item" data-index="1">
-          <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-2.jpg" alt="Motores Morichal - Showroom" loading="lazy">
-          <div class="gallery-overlay">
-            <i class="fas fa-search-plus"></i>
-          </div>
-        </div>
-        <div class="img img3 gallery-item" data-index="2">
-          <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-3.jpg" alt="Motores Morichal - Atención" loading="lazy">
-          <div class="gallery-overlay">
-            <i class="fas fa-search-plus"></i>
-          </div>
-        </div>
+        <?php endforeach; ?>
       </div>
 
-      <!-- Lightbox Modal -->
-      <div id="gallery-lightbox" class="gallery-lightbox" role="dialog" aria-modal="true" aria-hidden="true">
-        <button class="lightbox-close" aria-label="Cerrar galería">
-          <i class="fas fa-times"></i>
+      <div id="gallery-lightbox" class="gallery-lightbox" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Galería de Motores Morichal" tabindex="-1">
+        <button type="button" class="lightbox-close" aria-label="Cerrar galería">
+          <?php echo toyota_monagas_icon('close'); ?>
         </button>
-        
+
         <div class="lightbox-content">
-          <!-- Main Gallery Swiper -->
           <div class="gallery-swiper swiper">
             <div class="swiper-wrapper">
-              <div class="swiper-slide">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-1.jpg" alt="Motores Morichal - Instalaciones">
-              </div>
-              <div class="swiper-slide">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-2.jpg" alt="Motores Morichal - Showroom">
-              </div>
-              <div class="swiper-slide">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-3.jpg" alt="Motores Morichal - Atención">
-              </div>
-              <div class="swiper-slide">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/yaris-cross-thumb.png" alt="Yaris Cross" decoding="async" loading="lazy" referrerpolicy="no-referrer">
-              </div>
-              <div class="swiper-slide">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-4.jpg" alt="Motores Morichal - Servicio">
-              </div>
-              <div class="swiper-slide">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-5.jpg" alt="Motores Morichal - Concesionario">
-              </div>
-              <div class="swiper-slide">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-6.jpg" alt="Motores Morichal - Vehículos">
-              </div>
-              <div class="swiper-slide">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-7.jpg" alt="Motores Morichal - Experiencia">
-              </div>
-              <div class="swiper-slide">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-8.jpg" alt="Motores Morichal - Interior">
-              </div>
-              <div class="swiper-slide">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-9.jpg" alt="Motores Morichal - Venta">
-              </div>
+              <?php foreach ($tm_home_gallery as $image) : ?>
+                <div class="swiper-slide">
+                  <img src="<?php echo esc_url($image['src']); ?>" alt="<?php echo esc_attr($image['alt']); ?>" loading="lazy" decoding="async">
+                </div>
+              <?php endforeach; ?>
             </div>
-            
-            <!-- Navigation Arrows -->
-            <div class="swiper-button-prev gallery-arrow-prev"></div>
-            <div class="swiper-button-next gallery-arrow-next"></div>
+            <div class="swiper-button-prev gallery-arrow-prev" role="button" tabindex="0" aria-label="Imagen anterior"></div>
+            <div class="swiper-button-next gallery-arrow-next" role="button" tabindex="0" aria-label="Imagen siguiente"></div>
           </div>
 
-          <!-- Thumbnail Gallery -->
-          <div class="gallery-thumbs swiper">
+          <div class="gallery-thumbs swiper" aria-label="Miniaturas de la galería">
             <div class="swiper-wrapper">
-              <div class="swiper-slide">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-1.jpg" alt="Miniatura 1">
-              </div>
-              <div class="swiper-slide">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-2.jpg" alt="Miniatura 2">
-              </div>
-              <div class="swiper-slide">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-3.jpg" alt="Miniatura 3">
-              </div>
-              <div class="swiper-slide">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-4.jpg" alt="Miniatura 4">
-              </div>
-              <div class="swiper-slide">
-                <img src="https://arturomerchan.com/wp-content/uploads/2025/11/IMG_0348-scaled.jpg" alt="Miniatura 5">
-              </div>
-              <div class="swiper-slide">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-6.jpg" alt="Miniatura 6">
-              </div>
-              <div class="swiper-slide">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-6.jpg" alt="Miniatura 7">
-              </div>
-              <div class="swiper-slide">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-7.jpg" alt="Miniatura 8">
-              </div>
-              <div class="swiper-slide">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-8.jpg" alt="Miniatura 9">
-              </div>
-              <div class="swiper-slide">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/img/home/gallery-9.jpg" alt="Miniatura 10">
-              </div>
+              <?php foreach ($tm_home_gallery as $index => $image) : ?>
+                <div class="swiper-slide">
+                  <button type="button" class="gallery-thumb-button" data-gallery-index="<?php echo esc_attr($index); ?>" aria-label="<?php echo esc_attr('Mostrar ' . $image['alt']); ?>">
+                    <img src="<?php echo esc_url($image['src']); ?>" alt="" loading="lazy" decoding="async">
+                  </button>
+                </div>
+              <?php endforeach; ?>
             </div>
           </div>
         </div>
       </div>
     </div>
   </section>
-
-  <?php /* Productos - Sección ocultada
-  <section id="productos-mm" class="productos-mm">
-    <header class="section-header">
-      <span class="kicker">Repuestos</span>
-      <h2>Originales Toyota al mejor precio</h2>
-      <p>Calidad garantizada para el rendimiento de tu vehículo</p>
-    </header>
-    <div class="productos-grid">
-      <div class="producto-card">
-        <div class="producto-icon"><i class="fas fa-filter"></i></div>
-        <h3>Filtro de Aceite</h3>
-        <p>Filtro original Toyota para mantener el motor en &oacute;ptimas condiciones.</p>
-        
-        <a href="#" class="producto-btn">A&ntilde;adir al carrito <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="16" height="16" style="display:inline-block;vertical-align:middle;"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></a>
-      </div>
-      <div class="producto-card">
-        <div class="producto-icon"><i class="fas fa-car-battery"></i></div>
-        <h3>Bater&iacute;a Original</h3>
-        <p>Bater&iacute;a Toyota de alto rendimiento y larga duraci&oacute;n.</p>
-        
-        <a href="#" class="producto-btn">A&ntilde;adir al carrito <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="16" height="16" style="display:inline-block;vertical-align:middle;"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></a>
-      </div>
-      <div class="producto-card">
-        <div class="producto-icon"><i class="fas fa-car-side"></i></div>
-        <h3>Pastillas de Freno</h3>
-        <p>Juego de pastillas delanteras originales Toyota, m&aacute;xima seguridad.</p>
-        
-        <a href="#" class="producto-btn">A&ntilde;adir al carrito <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="16" height="16" style="display:inline-block;vertical-align:middle;"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></a>
-      </div>
-      <div class="producto-card">
-        <div class="producto-icon"><i class="fas fa-wind"></i></div>
-        <h3>Filtro de Aire</h3>
-        <p>Filtro de aire Toyota para mayor eficiencia y consumo optimizado.</p>
-        
-        <a href="#" class="producto-btn">A&ntilde;adir al carrito <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="16" height="16" style="display:inline-block;vertical-align:middle;"><path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/></svg></a>
-      </div>
-    </div>
-  </section>
-  */ ?>
 
   <!-- Opiniones Google -->
   <section class="home-reviews">
@@ -454,17 +357,16 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
         <article class="blog-card">
           <?php
             $has_thumb = has_post_thumbnail();
-            $img_alt   = esc_attr(get_the_title());
+            $img_alt   = get_the_title();
           ?>
           <div class="blog-img">
             <a href="<?php the_permalink(); ?>">
               <?php if ($has_thumb) {
                 the_post_thumbnail('large', array('alt' => $img_alt));
               } else {
-                $seed = get_the_ID();
-                $ph   = sprintf('https://picsum.photos/seed/%d/600/400', (int)$seed);
+                $ph = toyota_monagas_placeholder_image_url();
               ?>
-                <img src="<?php echo esc_url($ph); ?>" alt="<?php echo $img_alt; ?>" loading="lazy" decoding="async" />
+                <img src="<?php echo esc_url($ph); ?>" alt="<?php echo esc_attr($img_alt); ?>" loading="lazy" decoding="async" />
               <?php } ?>
             </a>
           </div>
@@ -486,28 +388,4 @@ function tm_render_slide_media($url_or_id, $is_mobile = false) {
 
 </main>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  document.body.addEventListener('click', function(e) {
-    if (e.target && e.target.closest('.js-whatsapp-link')) {
-      e.preventDefault();
-      var btn = e.target.closest('.js-whatsapp-link');
-      var modelo = btn.getAttribute('data-modelo') || '';
-      var version = btn.getAttribute('data-version') ? ' (' + btn.getAttribute('data-version') + ')' : '';
-      var text = 'Hola, quisiera cotizar el ' + modelo + version + '.';
-      var waBase = btn.getAttribute('data-wa');
-      
-      if (waBase) {
-         window.open(waBase + encodeURIComponent(text), '_blank');
-      }
-    }
-  });
-});
-</script>
-
 <?php get_footer(); ?>
-
-
-
-
-

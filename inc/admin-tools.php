@@ -3,27 +3,21 @@
  * Admin Tools
  */
 
+if (!defined('ABSPATH')) {
+  exit;
+}
+
 // Admin: page to reimport images for vehiculos missing featured image
 add_action('admin_menu', function(){
   add_submenu_page('edit.php?post_type=vehiculo', 'Reimportar imágenes', 'Reimportar imágenes', 'manage_options', 'toyota-reimport-images', 'toyota_reimport_images_page');
-
-  // Shortcut to Hero Slider Customizer from Sidebar Menu
-  add_menu_page(
-      'Hero Slider', 
-      'Hero Slider', 
-      'edit_theme_options', 
-      'customize.php?autofocus[section]=hero_slider_section', 
-      '', 
-      'dashicons-images-alt2', 
-      30
-  );
 });
 
 function toyota_reimport_images_page(){
   if (!current_user_can('manage_options')) return;
   echo '<div class="wrap"><h1>Reimportar imágenes de Vehículos</h1>';
   if (isset($_POST['toyota_reimport_action'])){
-    if (!isset($_POST['toyota_reimport_nonce']) || !wp_verify_nonce($_POST['toyota_reimport_nonce'],'toyota_reimport')){
+    $nonce = sanitize_text_field(toyota_monagas_request_scalar($_POST, 'toyota_reimport_nonce'));
+    if (!$nonce || !wp_verify_nonce($nonce, 'toyota_reimport')){
       echo '<div class="notice notice-error"><p>Nonce no válido.</p></div>';
     } else {
       $items = get_posts(array('post_type'=>'vehiculo','posts_per_page'=>-1,'post_status'=>'publish'));
