@@ -48,7 +48,7 @@ get_header(); ?>
     <div class="container veh-hero__inner">
       <div class="veh-hero__badge">Línea Toyota</div>
       <h2 class="veh-hero__title"><?php echo esc_html($hero_title); ?></h2>
-      <?php if($hero_sub): ?><p class="veh-hero__subtitle"><?php echo esc_html($hero_sub); ?></p><?php endif; ?>
+      <?php if($hero_sub && strcasecmp(trim($hero_sub), trim($hero_title)) !== 0): ?><p class="veh-hero__subtitle"><?php echo esc_html($hero_sub); ?></p><?php endif; ?>
       <div class="veh-hero__cta">
         <a class="veh-cta-primary" href="<?php echo esc_url(get_permalink($pid)); ?>">Descubrir modelo</a>
         <?php if($hero_legal): ?><a class="veh-cta-link" href="<?php echo esc_url($hero_legal); ?>" target="_blank" rel="noopener noreferrer">Texto legal</a><?php endif; ?>

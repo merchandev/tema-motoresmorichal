@@ -2604,7 +2604,7 @@ button:hover,
 
 .hero-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
   gap: 16px;
   margin: 1.25rem 0 1.6rem;
 }
@@ -2718,7 +2718,7 @@ button:hover,
 
 .about-hero-visual .bento-stack {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   gap: 14px;
   width: 100%;
 }
@@ -2770,7 +2770,7 @@ button:hover,
 
 .story-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   gap: 18px;
   margin-top: 1.75rem;
 }
@@ -2845,7 +2845,7 @@ button:hover,
 
 .focus-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
   gap: clamp(20px, 3vw, 32px);
   align-items: center;
 }
@@ -2907,7 +2907,7 @@ button:hover,
 .about-gallery-grid {
   display: grid;
   gap: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
   margin-top: 1.6rem;
 }
 
@@ -3010,7 +3010,7 @@ button:hover,
   }
 
   .hero-stats {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
   }
 
   .about-hero-visual {
@@ -4288,7 +4288,7 @@ main.vehiculo-premium-white,
 
 .veh-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: 20px;
 }
 
@@ -4383,7 +4383,7 @@ main.vehiculo-premium-white,
 
 .veh-beneficios__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   gap: 18px;
   margin-top: 18px;
 }
@@ -4417,7 +4417,7 @@ main.vehiculo-premium-white,
 .veh-gallery .veh-gallery-grid,
 .veh-gallery .gallery-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
   gap: 18px;
 }
 
@@ -4630,7 +4630,7 @@ main.vehiculo-premium-white,
   }
 
   .veh-grid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
   }
 
   .veh-swatch {
@@ -5066,13 +5066,13 @@ main.vehiculo-premium-white,
 @media (max-width: 1024px) {
   #blog-mm .blog-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
     gap: 18px;
   }
 
   .home #productos-mm .productos-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
     gap: 16px;
   }
 }
@@ -5484,11 +5484,11 @@ body.post-type-archive-vehiculo main#site-main {
 .mmorichal-form textarea {
   width: 100%;
   padding: 14px 18px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #374151;
   border-radius: 12px;
   font-size: 1rem;
-  color: #111827;
-  background: #fff;
+  color: #f3f4f6;
+  background-color: #111827;
   transition: all 0.2s ease;
   box-sizing: border-box;
 }
@@ -5534,22 +5534,11 @@ body.post-type-archive-vehiculo main#site-main {
   color: #fff;
 }
 
-/* WhatsApp Specific Button */
-.atencion-form .mf-submit {
-  background-color: #25D366 !important;
-  box-shadow: 0 10px 20px rgba(37, 211, 102, 0.25);
-}
-
-.atencion-form .mf-submit:hover {
-  background-color: #1DA851 !important;
-  box-shadow: 0 14px 28px rgba(37, 211, 102, 0.3);
-}
-
 /* Select Arrow Customization */
 .mmorichal-form select {
   appearance: none;
   -webkit-appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d1d5db' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 1.2rem center;
   background-size: 1rem;
@@ -6632,7 +6621,7 @@ footer,
 .veh-grid,
 .blog-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   gap: 20px;
   width: 100%;
 }

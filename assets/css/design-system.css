@@ -347,8 +347,9 @@ h6 {
   padding: 0;
 }
 
+/* Lighter red: the forms are dark cards and #c90017 was unreadable there. */
 .mmorichal-form .mm-privacy-consent a {
-  color: var(--tm-red-hover);
+  color: #ff4d5a;
   text-decoration: underline;
   text-underline-offset: 0.15em;
 }
@@ -366,14 +367,34 @@ h6 {
   line-height: 1.35;
 }
 
+/* Every form is a self-contained dark card (this layer loads on every page,
+   so a form shortcode placed anywhere keeps readable labels and fields). */
+.mmorichal-form {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 720px;
+  margin-inline: auto;
+  padding: clamp(20px, 4vw, 36px);
+  border: 1px solid #1f2937;
+  border-radius: 18px;
+  background-color: #0a0a0a;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+  color: #f9fafb;
+  color-scheme: dark;
+}
+
 .mmorichal-form :is(input, select, textarea) {
   width: 100%;
   min-height: 48px;
-  border: 1px solid var(--tm-border);
+  border: 1px solid #374151;
   border-radius: var(--tm-radius-md);
-  background: var(--tm-white);
-  color: var(--tm-text);
+  background-color: #111827;
+  color: #f3f4f6;
   padding: 12px 14px;
+}
+
+.mmorichal-form :is(input, textarea)::placeholder {
+  color: #9ca3af;
 }
 
 .mmorichal-form textarea {
@@ -716,7 +737,9 @@ main#site-main > :is(#vehiculos, #accesorios-mm, #info-mm, #sobre-nosotros, .hom
   box-sizing: border-box;
   width: var(--tm-content-width) !important;
   max-width: none !important;
-  margin: var(--tm-section-space) auto !important;
+  /* Bottom margin only: <main> is a flex column on tablet/phone, where
+     margins do not collapse and top+bottom margins doubled every gap. */
+  margin: 0 auto var(--tm-section-space) !important;
   padding-inline: 0 !important;
   font-family: var(--tm-font);
 }
@@ -760,7 +783,9 @@ main#site-main :is(
 /* ---------- Typography: one face, bold titles, regular paragraphs ---------- */
 /* Section and page titles (home sections, catalog, blog, contact, articles). */
 main#site-main .section-header {
-  max-width: 760px;
+  /* Headers that sit directly in a section (contact, support pages) also
+     respect the 80% content width on phones. */
+  max-width: min(760px, 80vw);
   min-height: 0 !important;
   margin: 0 auto clamp(28px, 4vw, 48px) !important;
   padding: 0 !important;
@@ -899,8 +924,71 @@ main#site-main.single-post-main .entry-content {
 
 /* Blog, archive and article pages: breathing room between the fixed header
    (its real height is measured by navigation.js) and the first title. */
-main#site-main.site-main {
+main#site-main:is(.site-main, .atencion-page, .buzon-page) {
   padding-top: calc(var(--tm-header-height) + clamp(40px, 6vw, 72px)) !important;
+}
+
+/* ---------- Vehicle heroes (catalog and vehicle page) ----------
+   Both heroes sit full-bleed behind the fixed header; their content now
+   always starts below the header's real height and the hero grows with its
+   text instead of pushing the first lines under the header. */
+main#site-main.vehiculo-premium-white:is(:has(> .veh-hero), :has(> .vp-hero)) {
+  padding-top: 0 !important;
+}
+
+main#site-main > .veh-hero {
+  box-sizing: border-box;
+  min-height: clamp(420px, 70vh, 760px) !important;
+  margin-top: 0 !important;
+  padding: calc(var(--tm-header-height) + clamp(28px, 5vw, 56px)) 0 clamp(40px, 6vw, 72px) !important;
+}
+
+main#site-main > .veh-hero .veh-hero__inner {
+  padding-block: 0 !important;
+}
+
+main#site-main > .vp-hero {
+  height: auto !important;
+  max-height: none !important;
+  min-height: clamp(420px, 70vh, 880px) !important;
+}
+
+main#site-main > .vp-hero .vp-hero-overlay {
+  padding: calc(var(--tm-header-height) + clamp(28px, 5vw, 56px)) 0 clamp(32px, 5vw, 56px) !important;
+}
+
+main#site-main .vp-title {
+  text-transform: none;
+  letter-spacing: -0.02em;
+}
+
+/* Primary calls to action are brand red everywhere (they were near-black
+   and "Cotizar Ahora" disappeared on its dark card). */
+main#site-main :is(.veh-cta-primary, .vp-btn-primary) {
+  border-color: var(--tm-red) !important;
+  background: var(--tm-red) !important;
+  color: var(--tm-white) !important;
+  box-shadow: 0 10px 24px rgba(235, 10, 30, 0.28) !important;
+}
+
+main#site-main :is(.veh-cta-primary, .vp-btn-primary):hover {
+  border-color: var(--tm-red-hover) !important;
+  background: var(--tm-red-hover) !important;
+}
+
+/* About page: section intros sit on dark backgrounds; the legacy grey
+   (#4b5563) was nearly invisible there. */
+main#site-main.about-page .section-header p {
+  color: var(--tm-text-muted-dark) !important;
+}
+
+main#site-main .vp-ficha-kicker {
+  color: #5b6270;
+}
+
+/* Blog search spans the full content width on phones. */
+main#site-main .blog-search {
+  width: min(640px, 100%);
 }
 
 /* Third-party Google reviews widget: same faces as the rest of the page. */
@@ -1010,6 +1098,16 @@ main#site-main.site-main {
   min-width: 0 !important;
   max-width: none !important;
   height: auto;
+}
+
+/* Same hues, darkened just enough for the white card text to be readable
+   (WCAG AA): the originals gave the description 2.6:1. */
+#vehiculos .toyota-card[data-cat*="cars"] .toyota-info {
+  background: #6b6b5f;
+}
+
+#vehiculos .toyota-card[data-cat*="electrified"] .toyota-info {
+  background: #5d6e6e;
 }
 
 #vehiculos .toyota-card {
@@ -1221,10 +1319,141 @@ main#site-main #blog-mm .blog-content p {
   line-clamp: 3;
 }
 
-@media (max-width: 1023px) {
-  main#site-main #blog-mm .blog-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+/* Two-column services (tablet): the third card is centred, not stranded left. */
+@media (min-width: 769px) and (max-width: 1024px) {
+  main#site-main #info-mm .services-grid > .service-card:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: calc((100% - clamp(16px, 2vw, 28px)) / 2);
   }
+}
+
+/* About hero: when the copy is centred (tablet/phone) its capped-width lead
+   paragraph must be centred too. */
+@media (max-width: 1024px) {
+  main#site-main .about-hero-copy .lead {
+    margin-inline: auto;
+  }
+}
+
+/* About page stats: rows always filled, no orphan card on the left. */
+main#site-main .hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+main#site-main .hero-stats > .stat-card {
+  flex: 1 1 200px;
+}
+
+/* Tablets: one horizontal card per row (image left, text right) so three
+   posts never leave an orphan card or cramp titles into narrow columns. */
+@media (min-width: 600px) and (max-width: 1199px) {
+  main#site-main #blog-mm .blog-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  main#site-main #blog-mm .blog-card {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    align-items: stretch;
+  }
+
+  main#site-main #blog-mm .blog-img {
+    aspect-ratio: auto;
+    min-height: 220px;
+  }
+
+  main#site-main #blog-mm .blog-img a {
+    display: block;
+    height: 100%;
+  }
+
+  main#site-main #blog-mm .blog-img img {
+    height: 100%;
+    object-fit: cover;
+  }
+
+  main#site-main #blog-mm .blog-content {
+    justify-content: center;
+  }
+}
+
+/* Blog archive pages hold nine cards: three columns keep every row full
+   (the legacy four-column desktop grid left one card alone). */
+@media (min-width: 1101px) {
+  main#site-main .blog-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* About block photos on tablet/phone: one wide photo above two smaller ones
+   instead of three stacked full-width images (the first one was 3:4). */
+@media (max-width: 1024px) {
+  main#site-main #sobre-nosotros .sobre-nosotros-images {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas: "img1 img1" "img2 img3";
+  }
+
+  main#site-main #sobre-nosotros .img1 {
+    aspect-ratio: 16 / 9;
+  }
+
+  main#site-main #sobre-nosotros :is(.img2, .img3) {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+/* Contact forms: the submit label never breaks; full width on phones.
+   The consent text is a paragraph, so it uses the regular weight. */
+.mmorichal-form .mf-submit {
+  white-space: nowrap;
+}
+
+.mmorichal-form .mm-privacy-consent label {
+  font-weight: var(--tm-weight-body);
+}
+
+@media (max-width: 480px) {
+  .mmorichal-form .mf-submit {
+    width: 100%;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+  }
+}
+
+/* Support and suggestion pages wrapped the dark form in a second white card
+   (inline styles); every other form on the site is a single dark card. */
+main#site-main .form-wrapper {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+main#site-main .form-wrapper .mmorichal-form {
+  margin-inline: auto;
+}
+
+main#site-main > #contacto-header {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+  padding-inline: 0 !important;
+}
+
+main#site-main > #contacto-header > .whatsapp-wrap {
+  width: var(--tm-content-width);
+  margin-inline: auto;
+  padding-inline: 0;
+}
+
+/* One inner padding for every form card. */
+main#site-main .mmorichal-form {
+  padding: clamp(20px, 4vw, 36px);
 }
 
 @media (max-width: 767px) {
