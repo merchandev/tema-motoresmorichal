@@ -104,11 +104,10 @@
     function markBars(idx) {
       progressSpans.forEach(function (span, i) {
         span.classList.remove('active');
-        setWidth(span, i < idx ? '100%' : '0%', true);
+        setWidth(span, i <= idx ? '100%' : '0%', true);
       });
       if (progressSpans[idx]) {
         progressSpans[idx].classList.add('active');
-        setWidth(progressSpans[idx], '0%', true);
       }
     }
 
@@ -162,10 +161,8 @@
       }
 
       var pct = Math.min(100, (progressMs / currentDuration) * 100);
-      span.style.width = pct + '%';
 
       if (progressMs >= currentDuration) {
-        span.style.width = '100%';
         if (!isWorkingVideo) {
           swiperInstance.slideNext();
           return;
@@ -203,52 +200,20 @@
         video.setAttribute('muted', '');
         video.playsInline = true;
         video.setAttribute('playsinline', '');
-        video.setAttribute('preload', 'auto');
-        video.preload = 'auto';
         video.removeAttribute('loop');
 
-        function tryPlay() {
-          if (isPaused()) {
-            resolve();
-            return;
-          }
-          // Reset time just before play to avoid glitch
-          try { video.currentTime = 0; } catch (e) { }
+        if (!isPaused()) {
+          try { video.currentTime = 0; } catch (e) {}
           var playPromise;
           try {
             playPromise = video.play();
-          } catch (err) {
-            requestData();
-            return;
-          }
-          if (playPromise && typeof playPromise.then === 'function') {
-            playPromise.then(resolve).catch(requestData);
-          } else {
-            resolve();
+          } catch (e) {}
+          if (playPromise && typeof playPromise.catch === 'function') {
+            playPromise.catch(function(){});
           }
         }
 
-        // Fallback: If video doesn't resolve in 3 seconds, resolve anyway so slider isn't permanently stuck
-        setTimeout(resolve, 3000);
-
-        function requestData() {
-          video.addEventListener('canplaythrough', onReady, { once: true });
-          video.addEventListener('loadeddata', onReady, { once: true });
-          try { video.load(); } catch (e) { }
-        }
-
-        function onReady() {
-          // Ensure time is 0 after data loaded
-          try { video.currentTime = 0; } catch (e) { }
-          tryPlay();
-        }
-
-        // Check if already ready
-        if (video.readyState >= 3) {
-          tryPlay();
-        } else {
-          requestData();
-        }
+        resolve();
       });
     }
 
