@@ -76,9 +76,23 @@ jobs:
       - name: Verify ZIP integrity
         run: unzip -t *.zip
         working-directory: release
+      - name: Stage the theme folder for WordPress
+        id: installable
+        run: |
+          mkdir -p release/installable
+          unzip -q release/*.zip -d release/installable
+          test -f release/installable/toyota-monagas/style.css
+          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+      # GitHub always wraps an artifact in its own ZIP. Uploading the extracted
+      # theme folder makes that download a theme ZIP WordPress installs as is.
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: toyota-monagas-${{ github.sha }}
+          name: toyota-monagas-${{ steps.installable.outputs.version }}-wordpress
+          path: release/installable/
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-toyota-monagas-${{ github.sha }}
           path: |
             release/*.zip
             release/*.sha256

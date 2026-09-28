@@ -36,6 +36,13 @@ wp eval 'echo size_format(wp_max_upload_size()) . PHP_EOL;'
 
 Si el límite es inferior al ZIP, usar el canal de despliegue versionado/atómico aprobado o coordinar el aumento de los límites de PHP y del proxy; no retirar medios de la allowlist sin buscar antes sus referencias en la base de datos.
 
+## Artefactos de CI
+
+Cada push a `main` y cada PR publican dos artefactos en GitHub Actions:
+
+- `toyota-monagas-<versión>-wordpress`: la carpeta `toyota-monagas/` del ZIP verificado. GitHub entrega los artefactos comprimidos, así que el archivo descargado se sube tal cual en *Apariencia → Temas → Añadir tema → Subir tema*.
+- `release-toyota-monagas-<commit>`: el ZIP reproducible y su `.sha256`, para auditoría y rollback. Contiene otro ZIP dentro; subirlo directamente a WordPress falla con «El tema no tiene la hoja de estilos style.css».
+
 ## Despliegue
 
 1. Instalar el ZIP en staging y ejecutar toda la matriz de `docs/QA.md`.
