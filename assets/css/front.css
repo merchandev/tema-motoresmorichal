@@ -3,7 +3,6 @@
   width: 100%;
   height: clamp(520px, 85vh, 860px);
   overflow: hidden;
-  font-family: "Poppins", sans-serif;
 }
 
 #custom-slider .cs-slide {
@@ -789,7 +788,7 @@
 ========================== */
 #accesorios-mm {
   position: relative;
-  background-image: url('../img/home/yaris-cross-thumb.png');
+  background-image: url('../img/home/yaris-cross-thumb.jpg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -1052,7 +1051,6 @@
   display: flex;
   justify-content: center;
   border-radius: 24px;
-  font-family: 'Poppins', sans-serif;
   margin-left: var(--edge-margin);
   margin-right: var(--edge-margin);
 }
@@ -1925,7 +1923,6 @@
   max-width: none;
   margin: 4rem var(--edge-margin);
   color: #111827;
-  font-family: 'Segoe UI', sans-serif;
 }
 
 #whatsapp-mm .section-header {
@@ -2042,7 +2039,6 @@
   max-width: none;
   margin: 4rem var(--edge-margin);
   color: #111827;
-  font-family: 'Segoe UI', sans-serif;
 }
 
 #blog-mm {
@@ -2052,7 +2048,6 @@
   max-width: none;
   margin: 4rem var(--edge-margin);
   color: #111827;
-  font-family: 'Segoe UI', sans-serif;
 }
 
 /* enforce unified side padding on featured sections (overrides base main>section padding) */

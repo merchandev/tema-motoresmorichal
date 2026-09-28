@@ -55,6 +55,9 @@
     var pauseButton = slider.querySelector('.cs-play-toggle');
     var motionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
     var pausedByUser = !!(motionQuery && motionQuery.matches);
+    var pausedByViewport = false;
+    var mobileVideoQuery = window.matchMedia ? window.matchMedia('(max-width: 768px)') : null;
+    var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection || null;
     var rafId = 0;
     var lastTs = 0;
     var progressMs = 0;
@@ -62,7 +65,15 @@
     var activationToken = 0;
 
     function isPaused() {
-      return pausedByHover || pausedByUser;
+      return pausedByHover || pausedByUser || pausedByViewport;
+    }
+
+    // Buffer upcoming videos fully unless the visitor asked to save data or is
+    // on a very slow link; in that case only their metadata is fetched.
+    function canPreloadFully() {
+      if (!connection) return true;
+      if (connection.saveData) return false;
+      return !/2g$/.test(connection.effectiveType || '');
     }
 
     function updatePauseButton() {
@@ -111,8 +122,9 @@
       }
     }
 
-    function pauseAllVideos() {
+    function pauseAllVideos(exceptSlide) {
       slider.querySelectorAll('video').forEach(function (video) {
+        if (exceptSlide && exceptSlide.contains(video)) return;
         try { video.pause(); } catch (e) { }
         video.onended = null;
       });
@@ -179,9 +191,17 @@
       rafId = requestAnimationFrame(step);
     }
 
+    function pickVideoSource(video) {
+      var mobileSrc = video.getAttribute('data-src-mobile');
+      if (mobileSrc && mobileVideoQuery && mobileVideoQuery.matches) return mobileSrc;
+      return video.getAttribute('data-src');
+    }
+
     function assignVideoSource(video) {
       if (!video) return;
-      var dataSrc = video.getAttribute('data-src');
+      // The first slide ships <source> children so the browser can fetch it
+      // while parsing; assigning src here would restart that download.
+      var dataSrc = video.querySelector('source') ? '' : pickVideoSource(video);
       if (dataSrc && video._toyotaSrc !== dataSrc) {
         video.src = dataSrc;
         video._toyotaSrc = dataSrc;
@@ -203,7 +223,11 @@
         video.removeAttribute('loop');
 
         if (!isPaused()) {
-          try { video.currentTime = 0; } catch (e) {}
+          // A video that is already running (autoplay on the first slide)
+          // keeps its position; revisited slides restart from the beginning.
+          if (video.paused || video.ended) {
+            try { video.currentTime = 0; } catch (e) {}
+          }
           var playPromise;
           try {
             playPromise = video.play();
@@ -229,9 +253,30 @@
       if (!slide) return;
       var vids = slide.querySelectorAll('video');
       vids.forEach(function(vid) {
+        var desired = canPreloadFully() ? 'auto' : 'metadata';
+        if (vid.preload !== desired && vid.preload !== 'auto') vid.preload = desired;
+        var hadSource = !!(vid._toyotaSrc || vid.querySelector('source'));
         assignVideoSource(vid);
-        try { vid.load(); } catch (e) { }
+        if (hadSource && vid.networkState === 0) {
+          try { vid.load(); } catch (e) { }
+        }
       });
+    }
+
+    // Start buffering the next slide once the current video can play through,
+    // so both downloads do not compete for bandwidth at the start.
+    function primeNextWhenReady(swiper, videos, token) {
+      var done = false;
+      function go() {
+        if (done || token !== activationToken) return;
+        done = true;
+        primeAround(swiper);
+      }
+      var current = videos[0];
+      if (!current || current.readyState >= 4) { go(); return; }
+      current.addEventListener('canplaythrough', go, { once: true });
+      current.addEventListener('error', go, { once: true });
+      setTimeout(go, 6000);
     }
 
     function primeAround(swiper) {
@@ -249,12 +294,12 @@
       activationToken++;
       var token = activationToken;
       stopProgress();
-      pauseAllVideos();
 
       activeIndex = getRealIndex(swiper);
       markBars(activeIndex);
 
       var activeSlide = swiper.slides[swiper.activeIndex];
+      pauseAllVideos(activeSlide);
       var videos = activeSlide ? Array.prototype.slice.call(activeSlide.querySelectorAll('video')) : [];
 
       function begin() {
@@ -267,14 +312,13 @@
           });
         }
         startProgress();
-        primeAround(swiper);
+        primeNextWhenReady(swiper, videos, token);
       }
 
       if (videos.length > 0) {
         Promise.all(videos.map(ensureVideo)).then(begin);
       } else {
         begin();
-        primeAround(swiper);
       }
     }
 
@@ -285,7 +329,7 @@
         stopProgress();
         pauseAllVideos();
       });
-      inst.on('slideChange', function () { activate(inst); primeAround(inst); });
+      inst.on('slideChange', function () { activate(inst); });
     }
 
     function createOrAttach() {
@@ -350,6 +394,20 @@
       lastTs = 0;
       syncActiveVideo();
     });
+
+    // Stop decoding video while the hero is scrolled out of view; this keeps
+    // scrolling smooth on phones and saves battery and data.
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          var offscreen = !entry.isIntersecting;
+          if (offscreen === pausedByViewport) return;
+          pausedByViewport = offscreen;
+          lastTs = 0;
+          syncActiveVideo();
+        });
+      }, { threshold: 0.1 }).observe(slider);
+    }
   }
 
   function initVehiculos() {
@@ -359,8 +417,9 @@
     var tablist = document.querySelector('#vehiculos .toyota-tabs');
     var scroller = document.querySelector('#vehiculos .toyota-nav') || tablist;
     var indicator = document.querySelector('#vehiculos .toyota-tab-indicator');
-    var arrowPrev = document.querySelector('#vehiculos .toyota-arrow.swiper-button-prev');
-    var arrowNext = document.querySelector('#vehiculos .toyota-arrow.swiper-button-next');
+    var arrowPrev = document.querySelector('#vehiculos .toyota-arrow--prev');
+    var arrowNext = document.querySelector('#vehiculos .toyota-arrow--next');
+    var arrowControls = document.querySelector('#vehiculos .toyota-slider-controls');
     if (!wrapper) return;
 
     var swiper = null;
@@ -379,8 +438,9 @@
           spaceBetween: 20,
           watchOverflow: true,
           navigation: {
-            nextEl: '#vehiculos .toyota-arrow.swiper-button-next',
-            prevEl: '#vehiculos .toyota-arrow.swiper-button-prev'
+            nextEl: '#vehiculos .toyota-arrow--next',
+            prevEl: '#vehiculos .toyota-arrow--prev',
+            addIcons: false
           },
           breakpoints: {
             0: { slidesPerView: 1 },
@@ -411,11 +471,9 @@
       var slidesPerView = window.innerWidth >= 1024 ? 3 : (window.innerWidth >= 768 ? 2 : 1);
       var show = count > slidesPerView;
       var canSwipe = count > 1;
-      var displayValue = show ? '' : 'none';
+      if (arrowControls) arrowControls.hidden = !show;
       [arrowPrev, arrowNext].forEach(function (btn) {
         if (!btn) return;
-        btn.style.display = displayValue;
-        btn.setAttribute('aria-hidden', show ? 'false' : 'true');
         if (!show) {
           btn.classList.add('swiper-button-disabled');
         } else {

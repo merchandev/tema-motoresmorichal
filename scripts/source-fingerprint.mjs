@@ -9,7 +9,7 @@ const inputs = [
   'inc',
   'template-parts',
   'assets/css/front.css',
-  'assets/img/home/yaris-cross-thumb.png',
+  'assets/img/home/yaris-cross-thumb.jpg',
   'assets/js',
   'js',
   'package.json',

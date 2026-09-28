@@ -39,7 +39,7 @@ El núcleo compilado que consume el navegador se genera en `dist/`:
 | `dist/swiper.js` | `src/ts/swiper.ts` | Swiper empaquetado y puente global para el runtime heredado. |
 | `dist/front.js` | `src/js/front.js` | Slider, catálogos, carga AJAX, blog y galería. |
 | `dist/app.js` | `src/ts/app.ts` | Funcionalidad TypeScript adicional. |
-| `dist/yaris-cross-thumb.png` | `assets/img/home/yaris-cross-thumb.png` | Medio local referenciado por el CSS compilado. |
+| `dist/yaris-cross-thumb.jpg` | `assets/img/home/yaris-cross-thumb.jpg` | Medio local referenciado por el CSS compilado. |
 
 `src/css/input.css` y `src/js/front.js` importan temporalmente los assets funcionales existentes. Esto preserva paridad durante la migración sin servir directamente esos archivos en producción.
 
@@ -49,7 +49,7 @@ Hay dos capas runtime intencionalmente externas a Vite: `assets/js/navigation.js
 
 ### Orden de carga
 
-1. Font Awesome local y `style.css`.
+1. `style.css` (y Font Awesome local, no bloqueante, solo si el contenido usa sus clases).
 2. `dist/style.css`.
 3. `assets/css/design-system.css`, como última capa CSS.
 4. `assets/js/navigation.js`, disponible globalmente.
@@ -68,6 +68,16 @@ No se debe añadir de nuevo Swiper por CDN ni inicializar sus sliders desde `app
 - `tsconfig.json`: typecheck estricto sin emisión.
 - `release.config.mjs`: allowlist explícita del ZIP de producción.
 - `package.json`: comandos y versiones exactas de herramientas.
+
+### Slider principal y layout
+
+- `toyota_monagas_get_home_slides()` centraliza los slides; `front-page.php` y la precarga en `<head>` usan los mismos datos.
+- El primer video se declara con `<source>` y `autoplay`, así el navegador lo descarga mientras analiza el HTML. Los siguientes quedan en `preload="none"` y se precargan cuando el actual ya puede reproducirse completo (salvo con ahorro de datos o 2G).
+- Cada slide de video admite un video móvil opcional (`slide_video_mobile`, ≤ 768 px) y una imagen de portada (`slide_video_poster`), que se muestra al instante y se precarga para el primer slide.
+- El video se pausa cuando el slider sale de la pantalla.
+- Tipografía: una sola fuente local (Inter, `assets/fonts/inter/`, SIL OFL) con dos estilos: títulos en negrita (`--tm-font-heading`, 700) y párrafos en regular (`--tm-font-body`, 400). La escala de títulos tiene cuatro niveles (hero, sección, sub-sección, tarjeta) y la de párrafos dos (introducción y cuerpo). Los resaltados en rojo (kickers, píldoras, enlaces) conservan su estilo.
+- Las tarjetas de vehículos muestran solo el título del modelo; el subtítulo (`veh_subtitulo`) se usa en la ficha, no en las tarjetas.
+- `assets/css/design-system.css` define el layout único: el contenido ocupa el 80% del ancho con 10% de margen a cada lado en todos los dispositivos (solo el slider es a pantalla completa) y una sola escala tipográfica para kicker, títulos y párrafos de sección.
 
 ### Contacto, privacidad y SMTP
 
@@ -109,7 +119,8 @@ npm run package
 
 ## Assets externos y portabilidad
 
-- Font Awesome se sirve desde `assets/fontawesome` con versionado por `filemtime`.
+- Los iconos de interfaz son SVG en línea generados por `toyota_monagas_icon()`, visibles desde el primer render.
+- Font Awesome se sirve desde `assets/fontawesome` con versionado por `filemtime`, `font-display: swap` y carga no bloqueante; solo se encola cuando el contenido usa sus clases o el filtro `toyota_monagas_needs_fontawesome` devuelve `true`.
 - La interfaz conserva fallbacks de tipografía del sistema; Google Fonts no es requisito de ejecución.
 - Las URLs de medios de producción que aún estén codificadas deben inventariarse y migrarse de forma gradual a Media Library, opciones del tema o assets locales.
 - Los endpoints AJAX siempre se inyectan con `admin_url()`; no deben construirse desde rutas raíz fijas.
