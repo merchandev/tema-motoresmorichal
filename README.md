@@ -54,7 +54,7 @@ Dos assets pequeños se sirven directamente y también forman parte de la allowl
 
 Ambos pasan las comprobaciones de sintaxis de `npm run qa`; `design-system.css` se carga después del CSS compilado para mantener una cascada predecible.
 
-Los iconos de las plantillas son SVG en línea (`toyota_monagas_icon()`). Font Awesome se sirve desde `assets/fontawesome/` sin CDN y solo se carga, sin bloquear el render, cuando el contenido de una entrada usa sus clases; el filtro `toyota_monagas_needs_fontawesome` permite forzarlo. La tipografía usa la pila de sistema definida en `style.css`, por lo que una fuente remota nunca bloquea la interfaz.
+Los iconos de las plantillas son SVG en línea (`toyota_monagas_icon()`). Font Awesome se sirve desde `assets/fontawesome/` sin CDN y solo se carga, sin bloquear el render, cuando el contenido de una entrada usa sus clases; el filtro `toyota_monagas_needs_fontawesome` permite forzarlo. La tipografía es una sola fuente local, Inter (licencia SIL OFL, subconjunto latino de 48 KB en `assets/fonts/inter/`): títulos en negrita (700) y párrafos en regular (400). Se precarga en `<head>` y usa `font-display: swap`, así que nunca bloquea la interfaz.
 
 Al activar el tema se registran tipos de contenido, capacidades administrativas y reglas de enlaces permanentes. La activación no crea, publica, repone ni sobrescribe contenido editorial.
 

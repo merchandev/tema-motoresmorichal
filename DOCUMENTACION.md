@@ -75,6 +75,8 @@ No se debe añadir de nuevo Swiper por CDN ni inicializar sus sliders desde `app
 - El primer video se declara con `<source>` y `autoplay`, así el navegador lo descarga mientras analiza el HTML. Los siguientes quedan en `preload="none"` y se precargan cuando el actual ya puede reproducirse completo (salvo con ahorro de datos o 2G).
 - Cada slide de video admite un video móvil opcional (`slide_video_mobile`, ≤ 768 px) y una imagen de portada (`slide_video_poster`), que se muestra al instante y se precarga para el primer slide.
 - El video se pausa cuando el slider sale de la pantalla.
+- Tipografía: una sola fuente local (Inter, `assets/fonts/inter/`, SIL OFL) con dos estilos: títulos en negrita (`--tm-font-heading`, 700) y párrafos en regular (`--tm-font-body`, 400). La escala de títulos tiene cuatro niveles (hero, sección, sub-sección, tarjeta) y la de párrafos dos (introducción y cuerpo). Los resaltados en rojo (kickers, píldoras, enlaces) conservan su estilo.
+- Las tarjetas de vehículos muestran solo el título del modelo; el subtítulo (`veh_subtitulo`) se usa en la ficha, no en las tarjetas.
 - `assets/css/design-system.css` define el layout único: el contenido ocupa el 80% del ancho con 10% de margen a cada lado en todos los dispositivos (solo el slider es a pantalla completa) y una sola escala tipográfica para kicker, títulos y párrafos de sección.
 
 ### Contacto, privacidad y SMTP

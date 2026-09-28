@@ -280,6 +280,23 @@ function toyota_monagas_preload_hero_media() {
 }
 add_action('wp_head', 'toyota_monagas_preload_hero_media', 2);
 
+/**
+ * The single site typeface is requested from design-system.css, the last
+ * stylesheet; preloading it avoids a late swap from the fallback font.
+ */
+function toyota_monagas_preload_font() {
+    $font_path = '/assets/fonts/inter/inter-latin-wght-normal.woff2';
+    if (!file_exists(get_template_directory() . $font_path)) {
+        return;
+    }
+
+    printf(
+        '<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>' . "\n",
+        esc_url(get_template_directory_uri() . $font_path)
+    );
+}
+add_action('wp_head', 'toyota_monagas_preload_font', 1);
+
 function toyota_monagas_dist_is_complete() {
     $dist_dir = get_template_directory() . '/dist';
 

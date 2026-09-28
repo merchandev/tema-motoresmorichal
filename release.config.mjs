@@ -39,6 +39,7 @@ export const releaseDirectories = [
   'js',
   'dist',
   'assets/fontawesome',
+  'assets/fonts',
   'assets/img',
   'assets/media',
 ]

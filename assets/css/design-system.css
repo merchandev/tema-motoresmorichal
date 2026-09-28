@@ -2,6 +2,19 @@
    TOYOTA MONAGAS DESIGN SYSTEM — canonical compatibility layer
    Keeps legacy component classes visually aligned while templates migrate.
    ========================================================================== */
+
+/* One self-hosted typeface for the whole site (Inter, SIL OFL, Latin subset:
+   covers Spanish). Registered as 'Inter' so every legacy 'Inter' reference
+   resolves to this file instead of silently falling back to Arial/Segoe UI. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../fonts/inter/inter-latin-wght-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 :root {
   --tm-red: #eb0a1e;
   --tm-red-hover: #c90017;
@@ -11,11 +24,19 @@
   --tm-border: #dedede;
   --tm-surface: #f6f6f6;
   --tm-white: #ffffff;
-  --tm-font: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* Two text styles only: titles (bold) and paragraphs (regular). */
+  --tm-font-heading: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  --tm-font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  --tm-font: var(--tm-font-body);
+  --tm-weight-heading: 700;
+  --tm-weight-body: 400;
   --tm-weight-regular: 400;
   --tm-weight-medium: 600;
   --tm-weight-semibold: 700;
-  --tm-weight-bold: 800;
+  --tm-weight-bold: 700;
+  /* Legacy style.css tokens point at the same faces. */
+  --heading-font: var(--tm-font-heading);
+  --body-font: var(--tm-font-body);
   --tm-radius-sm: 4px;
   --tm-radius-md: 8px;
   --tm-radius-lg: 12px;
@@ -36,6 +57,22 @@ html {
   display: none !important;
 }
 
+/* Screen-reader-only content must never take space: the global button rules
+   were giving the hidden blog search button padding that widened the page. */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
 main#site-main:not(.vehiculo-premium-white) {
   padding-top: var(--tm-header-height) !important;
 }
@@ -45,12 +82,38 @@ main#site-main:not(.vehiculo-premium-white) {
   padding-top: 0 !important;
 }
 
-body,
+body {
+  font-family: var(--tm-font-body) !important;
+  /* Elementor global typography follows the theme faces as well. */
+  --e-global-typography-primary-font-family: 'Inter' !important;
+  --e-global-typography-secondary-font-family: 'Inter' !important;
+  --e-global-typography-text-font-family: 'Inter' !important;
+  --e-global-typography-accent-font-family: 'Inter' !important;
+}
+
 button,
 input,
 select,
-textarea {
-  font-family: var(--tm-font);
+textarea,
+p,
+li,
+dd,
+blockquote,
+figcaption,
+label,
+td,
+th {
+  font-family: var(--tm-font-body);
+}
+
+/* Paragraphs are always the regular style unless a component (e.g. a red
+   highlight pill) sets its own weight. */
+p,
+li,
+dd,
+blockquote,
+figcaption {
+  font-weight: var(--tm-weight-body);
 }
 
 body {
@@ -65,24 +128,21 @@ body.admin-bar {
 
 :where(h1, h2, h3, h4, h5, h6) {
   color: var(--tm-black);
-  font-family: var(--tm-font);
   line-height: 1.15;
   text-wrap: balance;
 }
 
-/* Plain type selectors (not :where) so these weights beat Tailwind's preflight
-   reset (h1-h6 { font-weight: inherit }), which loads after style.css. Component
-   rules with a class still override them. */
+/* Every title uses the same face and bold weight. !important is needed to
+   beat Tailwind's preflight reset (font-weight: inherit), legacy component
+   rules and page-builder/plugin typography. */
 h1,
-h2 {
-  font-weight: var(--tm-weight-bold);
-}
-
+h2,
 h3,
 h4,
 h5,
 h6 {
-  font-weight: var(--tm-weight-semibold);
+  font-family: var(--tm-font-heading) !important;
+  font-weight: var(--tm-weight-heading) !important;
 }
 
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
@@ -603,10 +663,14 @@ body.page-id-91 .site-header.luxury-nav {
   --tm-section-space: clamp(48px, 8vw, 96px);
   --tm-box-padding: clamp(20px, 5vw, 64px);
   --tm-radius-xl: 24px;
-  --tm-font-h2: clamp(1.75rem, 1.2rem + 2.2vw, 2.75rem);
-  --tm-font-lead: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
-  --tm-font-card-title: 1.25rem;
-  --tm-font-body: 1rem;
+  /* Title scale (one face, bold): hero > section > sub-section > card. */
+  --tm-size-display: clamp(2rem, 1.3rem + 3vw, 3.5rem);
+  --tm-size-section: clamp(1.75rem, 1.2rem + 2.2vw, 2.75rem);
+  --tm-size-subsection: clamp(1.375rem, 1.15rem + 0.9vw, 1.75rem);
+  --tm-size-card-title: 1.25rem;
+  /* Paragraph scale (one face, regular): intro text and body text. */
+  --tm-size-lead: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --tm-size-body: 1rem;
   --tm-text-muted-dark: #d1d5db;
 }
 
@@ -621,8 +685,12 @@ main#site-main .container {
   padding-inline: 0 !important;
 }
 
-main#site-main .container .container {
+main#site-main .container .container,
+main#site-main .container .veh-section-head {
   width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+  padding-inline: 0 !important;
 }
 
 /* The container defines the side margins, so its section must not add more. */
@@ -689,15 +757,8 @@ main#site-main :is(
   padding-inline: 0 !important;
 }
 
-/* ---------- Typography: one family, one scale ---------- */
-#custom-slider,
-#sobre-nosotros.sobre-nosotros,
-#whatsapp-mm,
-#blog-mm,
-.site-footer {
-  font-family: var(--tm-font);
-}
-
+/* ---------- Typography: one face, bold titles, regular paragraphs ---------- */
+/* Section and page titles (home sections, catalog, blog, contact, articles). */
 main#site-main .section-header {
   max-width: 760px;
   min-height: 0 !important;
@@ -706,35 +767,35 @@ main#site-main .section-header {
   text-align: center;
 }
 
+/* Red kicker keeps its original look. */
 main#site-main .section-header .kicker {
   display: block;
   margin: 0 0 0.6rem;
   color: var(--tm-red) !important;
   font-size: 0.8125rem;
-  font-weight: var(--tm-weight-bold);
+  font-weight: 700;
   letter-spacing: 0.14em;
   line-height: 1.2;
   text-transform: uppercase;
 }
 
-main#site-main .section-header h2 {
+main#site-main :is(.section-header h1, .section-header h2, .veh-section-head h2, .single-post-main .entry-title, #accesorios-mm .accesorios-content h2) {
   margin: 0 0 0.6rem !important;
-  font-family: var(--tm-font);
-  font-size: var(--tm-font-h2) !important;
-  font-weight: var(--tm-weight-bold) !important;
+  font-size: var(--tm-size-section) !important;
   letter-spacing: -0.015em;
   line-height: 1.15 !important;
   background: none !important;
   -webkit-text-fill-color: currentColor;
 }
 
-main#site-main .section-header p {
+main#site-main :is(.section-header p, .veh-section-head p) {
   max-width: 60ch;
-  margin: 0 auto !important;
-  font-family: var(--tm-font);
-  font-size: var(--tm-font-lead) !important;
-  font-weight: var(--tm-weight-regular);
+  font-size: var(--tm-size-lead) !important;
   line-height: 1.6;
+}
+
+main#site-main .section-header p {
+  margin: 0 auto !important;
 }
 
 /* Home header colours: dark text on light sections, light on dark boxes. */
@@ -755,20 +816,6 @@ main#site-main :is(#info-mm, #sobre-nosotros) .section-header p {
   color: var(--tm-text-muted-dark) !important;
 }
 
-/* Catalog pages use the same heading scale as the home sections. */
-main#site-main .veh-section-head h2 {
-  margin: 0 0 0.6rem;
-  font-size: var(--tm-font-h2);
-  font-weight: var(--tm-weight-bold);
-  letter-spacing: -0.015em;
-  line-height: 1.15;
-}
-
-main#site-main .veh-section-head p {
-  font-size: var(--tm-font-lead);
-  line-height: 1.6;
-}
-
 main#site-main .veh-section-head .veh-tag {
   display: block;
   margin: 0 0 0.6rem;
@@ -777,26 +824,93 @@ main#site-main .veh-section-head .veh-tag {
   background: none;
   color: var(--tm-red);
   font-size: 0.8125rem;
-  font-weight: var(--tm-weight-bold);
+  font-weight: 700;
   letter-spacing: 0.14em;
   line-height: 1.2;
   text-transform: uppercase;
 }
 
-/* Card titles and body copy share the same scale across the home. */
-main#site-main :is(#vehiculos .toyota-info-text h3, #info-mm .service-card h3, #blog-mm .blog-content h3) {
+/* Hero titles and their intro line. */
+:is(#custom-slider .cs-slide-content h2, .veh-hero__title, .vp-title, .about-hero-copy h1) {
+  font-size: var(--tm-size-display) !important;
+  letter-spacing: -0.02em;
+  line-height: 1.1 !important;
+}
+
+:is(#custom-slider .cs-slide-content p, .veh-hero__subtitle, .veh-hero__meta, .about-hero-copy .lead) {
+  font-size: var(--tm-size-lead) !important;
+  line-height: 1.55;
+}
+
+/* Titles inside a section (text blocks, featured post, forms). */
+main#site-main :is(
+  .sobre-nosotros-text h2,
+  .focus-content h2,
+  .fullstory-card h2,
+  .bf-title,
+  .vp-ficha-title
+) {
+  font-size: var(--tm-size-subsection) !important;
+  letter-spacing: -0.01em;
+  line-height: 1.2 !important;
+}
+
+/* Card titles: vehicles, services, blog, story cards, contact block. */
+main#site-main :is(
+  .toyota-info-text h3,
+  .veh-card h3,
+  .service-card h3,
+  .blog-content h3,
+  .blog-mini-title,
+  .story-card h3,
+  .contacto-info__title
+) {
   margin: 0 0 0.5rem;
-  font-family: var(--tm-font);
-  font-size: var(--tm-font-card-title) !important;
-  font-weight: var(--tm-weight-bold);
-  line-height: 1.25;
+  font-size: var(--tm-size-card-title) !important;
+  line-height: 1.25 !important;
   text-wrap: balance;
 }
 
-main#site-main :is(#info-mm .service-card p, #blog-mm .blog-content p, .sobre-nosotros-text p, #accesorios-mm .accesorios-content p) {
-  font-family: var(--tm-font);
-  font-size: var(--tm-font-body) !important;
+/* Body paragraphs: one size and line height for every card and text block. */
+main#site-main :is(
+  .toyota-info-text p,
+  .veh-card__excerpt,
+  .service-card p,
+  .blog-content p,
+  .blog-mini-excerpt,
+  .bf-excerpt,
+  .sobre-nosotros-text p,
+  .accesorios-content p,
+  .story-card p,
+  .focus-content p,
+  .fullstory-card p,
+  .contacto-info p,
+  .faq-body p
+) {
+  font-size: var(--tm-size-body) !important;
   line-height: 1.6;
+}
+
+main#site-main .single-post-main .entry-content,
+main#site-main.single-post-main .entry-content {
+  font-size: var(--tm-size-lead);
+  line-height: 1.75;
+}
+
+/* Blog, archive and article pages: breathing room between the fixed header
+   (its real height is measured by navigation.js) and the first title. */
+main#site-main.site-main {
+  padding-top: calc(var(--tm-header-height) + clamp(40px, 6vw, 72px)) !important;
+}
+
+/* Third-party Google reviews widget: same faces as the rest of the page. */
+.ti-widget,
+.ti-widget *:not(i):not(svg):not(svg *):not([class*="icon"]):not([class*="star"]) {
+  font-family: var(--tm-font-body) !important;
+}
+
+.ti-widget .ti-name {
+  font-weight: var(--tm-weight-heading) !important;
 }
 
 /* ---------- Icons: inline SVG, fixed size, never wider than the control ---------- */
@@ -931,21 +1045,6 @@ main#site-main :is(#info-mm .service-card p, #blog-mm .blog-content p, .sobre-no
   padding: clamp(18px, 2.5vw, 24px);
 }
 
-#vehiculos .toyota-year {
-  display: block;
-  margin-bottom: 0.25rem;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.8125rem;
-  font-weight: var(--tm-weight-medium);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-#vehiculos .toyota-info-text p {
-  font-size: 0.95rem;
-  line-height: 1.55;
-}
-
 #vehiculos .toyota-buttons {
   gap: 0.75rem 1.25rem;
 }
@@ -1051,7 +1150,6 @@ main#site-main .sobre-nosotros-text {
 
 main#site-main .sobre-nosotros-text h2 {
   margin: 0;
-  font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
 }
 
 main#site-main .sobre-nosotros-text .sobre-nosotros-btn {
@@ -1066,12 +1164,6 @@ main#site-main #accesorios-mm {
 
 main#site-main #accesorios-mm .accesorios-overlay {
   padding: var(--tm-box-padding);
-}
-
-main#site-main #accesorios-mm .accesorios-content h2 {
-  font-size: var(--tm-font-h2);
-  font-weight: var(--tm-weight-bold);
-  line-height: 1.15;
 }
 
 /* Fixed backgrounds repaint on every scroll frame on phones (and iOS ignores them). */

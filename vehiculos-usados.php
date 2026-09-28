@@ -126,7 +126,6 @@ get_header(); ?>
             $terms = wp_get_post_terms($pid, 'vehiculo_categoria', array('fields'=>'names'));
             $term_name = (!empty($terms) && is_array($terms)) ? $terms[0] : '';
             $data_cat = isset($cat_map[$term_name]) ? $cat_map[$term_name] : 'cars';
-            $sub = get_post_meta($pid,'veh_subtitulo',true)?:'';
             $price = get_post_meta($pid,'veh_precio',true);
         ?>
         <article class="veh-card" data-cat="<?php echo esc_attr($data_cat); ?>" role="listitem">
@@ -137,7 +136,6 @@ get_header(); ?>
           </figure>
           <div class="veh-card__body">
             <div class="veh-card__top">
-              <span class="veh-card__year"><?php echo esc_html($sub); ?></span>
               <h3><?php echo esc_html($title); ?></h3>
             </div>
             <p class="veh-card__excerpt"><?php echo wp_kses_post( wp_trim_words( $content, 20, '…' ) ); ?></p>

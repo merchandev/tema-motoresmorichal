@@ -135,8 +135,6 @@ $tm_servicio_url = toyota_monagas_whatsapp_url(
           $term_name = (!empty($terms) && is_array($terms)) ? $terms[0] : '';
           $data_cat = isset($cat_map[$term_name]) ? $cat_map[$term_name] : 'cars';
           $wa_fallback = toyota_monagas_whatsapp_url('Hola, quisiera cotizar el ' . $title . '.');
-          $subtitle = trim((string) get_post_meta($post_id, 'veh_subtitulo', true));
-          if (strcasecmp($subtitle, trim($title)) === 0) $subtitle = '';
       ?>
       <template data-cat="<?php echo esc_attr($data_cat); ?>">
         <article class="toyota-card">
@@ -147,7 +145,6 @@ $tm_servicio_url = toyota_monagas_whatsapp_url(
           </figure>
           <div class="toyota-info">
             <header class="toyota-info-text">
-              <?php if ($subtitle !== '') : ?><span class="toyota-year"><?php echo esc_html($subtitle); ?></span><?php endif; ?>
               <h3><?php echo esc_html($title); ?></h3>
               <p><?php echo wp_kses_post( wp_trim_words( $content, 20, '...' ) ); ?></p>
             </header>
