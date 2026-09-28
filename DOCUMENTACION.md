@@ -1,6 +1,6 @@
 # Documentación técnica: Toyota Monagas
 
-**Versión:** 1.2.0
+**Versión:** 1.3.0
 
 **Autor:** Merchan.Dev & Espressivo Venezuela
 
@@ -78,6 +78,7 @@ No se debe añadir de nuevo Swiper por CDN ni inicializar sus sliders desde `app
 - Tipografía: una sola fuente local (Inter, `assets/fonts/inter/`, SIL OFL) con dos estilos: títulos en negrita (`--tm-font-heading`, 700) y párrafos en regular (`--tm-font-body`, 400). La escala de títulos tiene cuatro niveles (hero, sección, sub-sección, tarjeta) y la de párrafos dos (introducción y cuerpo). Los resaltados en rojo (kickers, píldoras, enlaces) conservan su estilo.
 - Las tarjetas de vehículos muestran solo el título del modelo; el subtítulo (`veh_subtitulo`) se usa en la ficha, no en las tarjetas.
 - `assets/css/design-system.css` define el layout único: el contenido ocupa el 80% del ancho con 10% de margen a cada lado en todos los dispositivos (solo el slider es a pantalla completa) y una sola escala tipográfica para kicker, títulos y párrafos de sección.
+- Separación bajo el encabezado: con el encabezado del tema (fijo) el contenido se desplaza su altura real más un respiro; si Elementor Pro dibuja el encabezado (`.elementor-location-header`, en el flujo normal), `--tm-header-offset` vale 0 y solo queda el respiro (40–72 px antes del título de artículos, blog y páginas de atención).
 
 ### Contacto, privacidad y SMTP
 
@@ -137,8 +138,8 @@ npm run package
 
 El último comando crea:
 
-- `release/toyota-monagas-1.2.0.zip`
-- `release/toyota-monagas-1.2.0.zip.sha256`
+- `release/toyota-monagas-1.3.0.zip`
+- `release/toyota-monagas-1.3.0.zip.sha256`
 
 El ZIP tiene un directorio raíz `toyota-monagas/`, un `RELEASE-MANIFEST.json` con hashes por archivo y timestamps deterministas. El propio comando valida SHA-256, CRC/estructura ZIP, coincidencia exacta del manifiesto, contenido prohibido y sintaxis de todos los PHP extraídos. No incluye `.git`, `node_modules`, `src`, scripts de desarrollo, backups, temporales ni el video local de AGYA que no usa el runtime actual.
 

@@ -5,7 +5,7 @@
  * This file is now modularized. Please check the 'inc' directory for specific functionality.
  */
 
-define('TOYOTA_MONAGAS_VERSION', '1.2.0');
+define('TOYOTA_MONAGAS_VERSION', '1.3.0');
 
 // Setup and Enqueues
 require_once get_template_directory() . '/inc/setup.php';

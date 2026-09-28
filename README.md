@@ -1,6 +1,6 @@
 # Tema Toyota Monagas
 
-Tema personalizado de WordPress para Motores Morichal, C.A. La versión actual es **1.2.0**. El núcleo compilado del frontend vive en `dist/`; navegación global y sistema de diseño se mantienen como capas runtime explícitas y verificadas.
+Tema personalizado de WordPress para Motores Morichal, C.A. La versión actual es **1.3.0**. El núcleo compilado del frontend vive en `dist/`; navegación global y sistema de diseño se mantienen como capas runtime explícitas y verificadas.
 
 ## Requisitos
 

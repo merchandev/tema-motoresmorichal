@@ -47,6 +47,8 @@
   --tm-space-xl: 40px;
   --tm-focus: 0 0 0 3px rgba(235, 10, 30, 0.3);
   --tm-header-height: 80px;
+  /* Space the fixed theme header covers; 0 under an Elementor header. */
+  --tm-header-offset: var(--tm-header-height);
 }
 
 html {
@@ -77,8 +79,10 @@ main#site-main:not(.vehiculo-premium-white) {
   padding-top: var(--tm-header-height) !important;
 }
 
-/* Elementor owns spacing when it renders the theme location itself. */
+/* Elementor owns spacing when it renders the theme location itself: its
+   header sits in the normal flow, so nothing is hidden behind it. */
 .elementor-location-header ~ main#site-main {
+  --tm-header-offset: 0px;
   padding-top: 0 !important;
 }
 
@@ -922,10 +926,10 @@ main#site-main.single-post-main .entry-content {
   line-height: 1.75;
 }
 
-/* Blog, archive and article pages: breathing room between the fixed header
-   (its real height is measured by navigation.js) and the first title. */
+/* Blog, archive and article pages: breathing room between the header (the
+   fixed header's real height is measured by navigation.js) and the first title. */
 main#site-main:is(.site-main, .atencion-page, .buzon-page) {
-  padding-top: calc(var(--tm-header-height) + clamp(40px, 6vw, 72px)) !important;
+  padding-top: calc(var(--tm-header-offset) + clamp(40px, 6vw, 72px)) !important;
 }
 
 /* ---------- Vehicle heroes (catalog and vehicle page) ----------
@@ -940,7 +944,7 @@ main#site-main > .veh-hero {
   box-sizing: border-box;
   min-height: clamp(420px, 70vh, 760px) !important;
   margin-top: 0 !important;
-  padding: calc(var(--tm-header-height) + clamp(28px, 5vw, 56px)) 0 clamp(40px, 6vw, 72px) !important;
+  padding: calc(var(--tm-header-offset) + clamp(28px, 5vw, 56px)) 0 clamp(40px, 6vw, 72px) !important;
 }
 
 main#site-main > .veh-hero .veh-hero__inner {
@@ -954,7 +958,7 @@ main#site-main > .vp-hero {
 }
 
 main#site-main > .vp-hero .vp-hero-overlay {
-  padding: calc(var(--tm-header-height) + clamp(28px, 5vw, 56px)) 0 clamp(32px, 5vw, 56px) !important;
+  padding: calc(var(--tm-header-offset) + clamp(28px, 5vw, 56px)) 0 clamp(32px, 5vw, 56px) !important;
 }
 
 main#site-main .vp-title {

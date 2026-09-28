@@ -1,7 +1,7 @@
 {
   "name": "toyota-monagas",
   "private": true,
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Frontend build and release tooling for the Toyota Monagas WordPress theme.",
   "type": "module",
   "engines": {

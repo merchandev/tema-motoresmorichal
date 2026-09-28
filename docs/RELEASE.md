@@ -45,6 +45,8 @@ Si el límite es inferior al ZIP, usar el canal de despliegue versionado/atómic
 5. Purgar cachés y ejecutar el smoke test.
 6. Observar logs, 404, AJAX y formularios durante 30–60 minutos.
 
+Subir commits a GitHub no actualiza el sitio: el servidor solo cambia cuando se instala el ZIP. La carpeta raíz del ZIP es `toyota-monagas/`; debe coincidir con la carpeta del tema activo, y en *Apariencia → Temas → Añadir nuevo → Subir tema* hay que confirmar **Reemplazar el actual con el subido**. Si WordPress lo instala como un tema aparte, el sitio sigue mostrando el anterior. Tras purgar cachés, confirmar el despliegue en *Apariencia → Temas* (la versión debe coincidir con `style.css`) y en el código fuente de la portada (`style.css?ver=<versión>` y `assets/css/design-system.css`).
+
 ## Umbrales de rollback
 
 Revertir inmediatamente ante un fatal PHP/pantalla blanca, respuestas 5xx sostenidas, assets críticos 404, navegación principal inutilizable o pérdida de formularios/leads.
