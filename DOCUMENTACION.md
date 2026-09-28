@@ -150,6 +150,7 @@ Consulta [docs/RELEASE.md](docs/RELEASE.md) antes de desplegar y [docs/QA.md](do
 ## Mantenimiento
 
 - Cambiar código fuente, no archivos de `dist/` a mano.
+- `dist/` está versionado para que el repositorio sea instalable tal cual: tras cambiar `src/` o los assets que alimentan el build, ejecutar `npm run build` y versionar el resultado. CI falla si el `dist/` versionado no coincide con el build.
 - No editar simultáneamente el runtime heredado y su salida compilada.
 - Mantener commits separados para código, artefactos y documentación.
 - No guardar credenciales, exports de base de datos ni archivos de usuario en el repositorio.

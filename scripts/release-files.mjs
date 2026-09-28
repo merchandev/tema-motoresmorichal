@@ -102,9 +102,9 @@ function validateGitState(paths) {
       .filter(Boolean)
       .map(normalizeReleasePath),
   )
-  const untrackedReleasePaths = paths.filter((path) => !path.startsWith('dist/') && !tracked.has(path))
+  const untrackedReleasePaths = paths.filter((path) => !tracked.has(path))
   if (untrackedReleasePaths.length > 0) {
-    throw new Error(`Release contains non-dist files that are not tracked by Git:\n${untrackedReleasePaths.join('\n')}`)
+    throw new Error(`Release contains files that are not tracked by Git:\n${untrackedReleasePaths.join('\n')}`)
   }
 }
 

@@ -11,7 +11,7 @@
 7. Revisar `RELEASE-MANIFEST.json`, tamaño del ZIP y checksum.
 8. Comparar el tamaño del ZIP con el límite real de subida de WordPress antes de intentar instalarlo desde el panel.
 
-El paquete usa la allowlist de `release.config.mjs`. Exige un checkout Git limpio y solo admite archivos versionados, excepto los artefactos recién generados de `dist/`. Los nuevos archivos de runtime deben añadirse explícitamente y revisarse; nunca se debe reemplazar este proceso por comprimir la raíz del repositorio.
+El paquete usa la allowlist de `release.config.mjs`. Exige un checkout Git limpio y solo admite archivos versionados, incluido `dist/`, que debe coincidir byte a byte con el build (si no, el build deja el árbol modificado y el empaquetado se detiene). Los nuevos archivos de runtime deben añadirse explícitamente y revisarse; nunca se debe reemplazar este proceso por comprimir la raíz del repositorio.
 
 ## Reproducibilidad y tamaño del paquete
 
@@ -45,7 +45,7 @@ Si el límite es inferior al ZIP, usar el canal de despliegue versionado/atómic
 5. Purgar cachés y ejecutar el smoke test.
 6. Observar logs, 404, AJAX y formularios durante 30–60 minutos.
 
-Subir commits a GitHub no actualiza el sitio: el servidor solo cambia cuando se instala el ZIP. La carpeta raíz del ZIP es `toyota-monagas/`; debe coincidir con la carpeta del tema activo, y en *Apariencia → Temas → Añadir nuevo → Subir tema* hay que confirmar **Reemplazar el actual con el subido**. Si WordPress lo instala como un tema aparte, el sitio sigue mostrando el anterior. Tras purgar cachés, confirmar el despliegue en *Apariencia → Temas* (la versión debe coincidir con `style.css`) y en el código fuente de la portada (`style.css?ver=<versión>` y `assets/css/design-system.css`).
+Subir commits a GitHub no actualiza el sitio: el servidor solo cambia cuando se instala el ZIP. La descarga directa del repositorio (*Code → Download ZIP*) también es un tema completo porque incluye `dist/`, pero su carpeta se llama `tema-motoresmorichal-main` y trae archivos de desarrollo; el ZIP de release es el formato recomendado. La carpeta raíz del ZIP es `toyota-monagas/`; debe coincidir con la carpeta del tema activo, y en *Apariencia → Temas → Añadir nuevo → Subir tema* hay que confirmar **Reemplazar el actual con el subido**. Si WordPress lo instala como un tema aparte, el sitio sigue mostrando el anterior. Tras purgar cachés, confirmar el despliegue en *Apariencia → Temas* (la versión debe coincidir con `style.css`) y en el código fuente de la portada (`style.css?ver=<versión>` y `assets/css/design-system.css`).
 
 ## Umbrales de rollback
 

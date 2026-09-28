@@ -33,7 +33,7 @@ Comandos disponibles:
 - `npm run qa`: ejecuta lint y un build completo.
 - `npm run package`: ejecuta todo el QA, crea un ZIP reproducible y valida checksum, manifiesto, estructura y PHP empaquetado.
 
-`dist/`, `release/` y `node_modules/` son generados y no se versionan. El lockfile sí debe permanecer versionado y las instalaciones reproducibles deben usar `npm ci`.
+`dist/` se genera con `npm run build` y se versiona, de modo que el repositorio es un tema instalable tal cual; tras cambiar sus fuentes hay que regenerarlo y versionarlo (CI falla si el `dist/` versionado no coincide con el build). `release/` y `node_modules/` no se versionan. El lockfile sí debe permanecer versionado y las instalaciones reproducibles deben usar `npm ci`.
 
 ## Arquitectura de assets
 
