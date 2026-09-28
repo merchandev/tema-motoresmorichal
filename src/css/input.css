@@ -1,5 +1,8 @@
 /* Canonical build entry: keep the proven runtime styles while they are migrated. */
-@import "swiper/css/bundle";
+@import "swiper/css";
+@import "swiper/css/navigation";
+@import "swiper/css/thumbs";
+@import "swiper/css/free-mode";
 @import "../../assets/css/front.css";
 
 @tailwind base;

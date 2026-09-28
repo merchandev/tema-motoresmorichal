@@ -454,6 +454,8 @@ function toyota_render_slide_data($post) {
     
     $slide_type = get_post_meta($post->ID, 'slide_type', true) ?: 'video';
     $slide_video_url = get_post_meta($post->ID, 'slide_video_url', true);
+    $slide_video_mobile = get_post_meta($post->ID, 'slide_video_mobile', true);
+    $slide_video_poster = get_post_meta($post->ID, 'slide_video_poster', true);
     $slide_img_desktop = get_post_meta($post->ID, 'slide_img_desktop', true);
     $slide_img_mobile = get_post_meta($post->ID, 'slide_img_mobile', true);
     $slide_desc = get_post_meta($post->ID, 'slide_desc', true);
@@ -485,7 +487,23 @@ function toyota_render_slide_data($post) {
                 <input type="text" name="slide_video_url" id="slide_video_url" value="<?php echo esc_attr($slide_video_url); ?>">
                 <button type="button" class="button tsl-upload-btn" data-target="#slide_video_url" data-type="video">Seleccionar Video</button>
             </div>
-            <p class="description">Selecciona un video en formato MP4 (optimizado para web).</p>
+            <p class="description">Selecciona un video en formato MP4 (optimizado para web: 1920px de ancho o menos, idealmente bajo 8 MB).</p>
+        </div>
+        <div class="tsl-row">
+            <label>Video MP4 (Móvil) - Opcional</label>
+            <div class="tsl-media-flex">
+                <input type="text" name="slide_video_mobile" id="slide_video_mobile" value="<?php echo esc_attr($slide_video_mobile); ?>">
+                <button type="button" class="button tsl-upload-btn" data-target="#slide_video_mobile" data-type="video">Seleccionar Video</button>
+            </div>
+            <p class="description">Versión liviana para teléfonos (720px de ancho o vertical, idealmente bajo 3 MB). Si se deja vacío, se usa el video de escritorio.</p>
+        </div>
+        <div class="tsl-row">
+            <label>Imagen de portada del video - Recomendado</label>
+            <div class="tsl-media-flex">
+                <input type="text" name="slide_video_poster" id="slide_video_poster" value="<?php echo esc_attr($slide_video_poster); ?>">
+                <button type="button" class="button tsl-upload-btn" data-target="#slide_video_poster" data-type="image">Seleccionar Imagen</button>
+            </div>
+            <p class="description">Se muestra al instante mientras el video carga (usa el primer fotograma, en JPG o WebP).</p>
         </div>
     </div>
 
@@ -580,9 +598,11 @@ add_action('save_post', function($post_id){
     $post_data = wp_unslash($_POST);
 
     $fields = array(
-        'slide_type', 
-        'slide_video_url', 
-        'slide_img_desktop', 
+        'slide_type',
+        'slide_video_url',
+        'slide_video_mobile',
+        'slide_video_poster',
+        'slide_img_desktop',
         'slide_img_mobile', 
         'slide_desc', 
         'slide_btn_text', 
@@ -596,7 +616,7 @@ add_action('save_post', function($post_id){
         if ($f === 'slide_type') {
             $value = sanitize_key($raw_value);
             $value = in_array($value, array('image', 'video'), true) ? $value : 'image';
-        } elseif (in_array($f, array('slide_video_url', 'slide_img_desktop', 'slide_img_mobile', 'slide_btn_link'), true)) {
+        } elseif (in_array($f, array('slide_video_url', 'slide_video_mobile', 'slide_video_poster', 'slide_img_desktop', 'slide_img_mobile', 'slide_btn_link'), true)) {
             $value = esc_url_raw($raw_value);
         } else {
             $value = sanitize_text_field($raw_value);

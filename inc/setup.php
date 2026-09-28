@@ -114,7 +114,7 @@ class Toyota_Walker_Nav_Menu extends Walker_Nav_Menu {
 // Assets
 // ---------------------------------------------
 function toyota_monagas_dist_files() {
-    return array('style.css', 'swiper.js', 'front.js', 'app.js', 'yaris-cross-thumb.png');
+    return array('style.css', 'swiper.js', 'front.js', 'app.js', 'yaris-cross-thumb.jpg');
 }
 
 /**
@@ -161,16 +161,124 @@ function toyota_monagas_request_scalar($source, $key, $default = '') {
 
 /**
  * Small interface icons stay inline so critical controls never depend on an
- * icon font. Font Awesome remains available locally for legacy decoration.
+ * icon font or on JavaScript injecting them after load.
  */
 function toyota_monagas_icon($name) {
     $icons = array(
         'zoom' => '<svg class="tm-icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35m2.35-5.65a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-4v8m-4-4h8"/></svg>',
         'close' => '<svg class="tm-icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6 6 18"/></svg>',
+        'arrow-right' => '<svg class="tm-icon tm-icon--inline" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-6-6 6 6-6 6"/></svg>',
+        'chevron-left' => '<svg class="tm-icon tm-icon--nav" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="m15 5-7 7 7 7"/></svg>',
+        'chevron-right' => '<svg class="tm-icon tm-icon--nav" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="m9 5 7 7-7 7"/></svg>',
     );
 
     return isset($icons[$name]) ? $icons[$name] : '';
 }
+
+/**
+ * Normalized hero slides for the front page. Cached per request because both
+ * the <head> preload hints and the template itself need the same data.
+ */
+function toyota_monagas_get_home_slides() {
+    static $slides = null;
+    if ($slides !== null) {
+        return $slides;
+    }
+
+    $slides = array();
+    $query = new WP_Query(array(
+        'post_type'      => 'slide',
+        'posts_per_page' => 20,
+        'orderby'        => 'menu_order',
+        'order'          => 'ASC',
+        'no_found_rows'  => true,
+    ));
+
+    foreach ($query->posts as $slide_post) {
+        $post_id = $slide_post->ID;
+        $img_desktop = (string) get_post_meta($post_id, 'slide_img_desktop', true);
+        if ($img_desktop === '' && has_post_thumbnail($post_id)) {
+            $img_desktop = (string) get_the_post_thumbnail_url($post_id, 'full');
+        }
+        $img_mobile = (string) get_post_meta($post_id, 'slide_img_mobile', true);
+        if ($img_mobile === '') {
+            $img_mobile = $img_desktop;
+        }
+        $poster = (string) get_post_meta($post_id, 'slide_video_poster', true);
+
+        $slides[] = array(
+            'type'         => get_post_meta($post_id, 'slide_type', true) ?: 'video',
+            'video'        => (string) get_post_meta($post_id, 'slide_video_url', true),
+            'video_mobile' => (string) get_post_meta($post_id, 'slide_video_mobile', true),
+            'poster'       => $poster,
+            'img_desktop'  => $img_desktop,
+            'img_mobile'   => $img_mobile,
+            'title'        => get_the_title($slide_post),
+            'desc'         => (string) get_post_meta($post_id, 'slide_desc', true),
+            'btn_text'     => (string) get_post_meta($post_id, 'slide_btn_text', true),
+            'btn_link'     => (string) get_post_meta($post_id, 'slide_btn_link', true),
+            'btn_target'   => get_post_meta($post_id, 'slide_btn_target', true) === '1' ? '_blank' : '_self',
+        );
+    }
+
+    if (!$slides) {
+        $slides[] = array(
+            'type'         => 'video',
+            'video'        => get_theme_file_uri('/assets/video/home/video-fortuner.mp4'),
+            'video_mobile' => '',
+            'poster'       => '',
+            'img_desktop'  => '',
+            'img_mobile'   => '',
+            'title'        => 'Bienvenidos a Motores Morichal',
+            'desc'         => 'Por favor, añade un slide desde el panel de control.',
+            'btn_text'     => '',
+            'btn_link'     => '',
+            'btn_target'   => '_self',
+        );
+    }
+
+    return $slides;
+}
+
+/**
+ * type attribute for a <source> element; empty when the extension is unknown
+ * so the browser sniffs the file instead of skipping it.
+ */
+function toyota_monagas_video_type_attr($url) {
+    $path = (string) wp_parse_url((string) $url, PHP_URL_PATH);
+    $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    $types = array('mp4' => 'video/mp4', 'm4v' => 'video/mp4', 'webm' => 'video/webm', 'ogv' => 'video/ogg', 'mov' => 'video/quicktime');
+
+    return isset($types[$extension]) ? ' type="' . esc_attr($types[$extension]) . '"' : '';
+}
+
+/**
+ * Let the browser fetch the first hero visual while it is still parsing the
+ * document instead of waiting for the footer scripts to assign it.
+ */
+function toyota_monagas_preload_hero_media() {
+    if (!is_front_page()) {
+        return;
+    }
+
+    $slides = toyota_monagas_get_home_slides();
+    $first = $slides ? $slides[0] : null;
+    if (!$first) {
+        return;
+    }
+
+    if ($first['type'] === 'image' && $first['img_desktop'] !== '') {
+        if ($first['img_mobile'] !== $first['img_desktop']) {
+            printf('<link rel="preload" as="image" href="%s" media="(max-width: 768px)" fetchpriority="high">' . "\n", esc_url($first['img_mobile']));
+            printf('<link rel="preload" as="image" href="%s" media="(min-width: 769px)" fetchpriority="high">' . "\n", esc_url($first['img_desktop']));
+        } else {
+            printf('<link rel="preload" as="image" href="%s" fetchpriority="high">' . "\n", esc_url($first['img_desktop']));
+        }
+    } elseif ($first['type'] === 'video' && $first['poster'] !== '') {
+        printf('<link rel="preload" as="image" href="%s" fetchpriority="high">' . "\n", esc_url($first['poster']));
+    }
+}
+add_action('wp_head', 'toyota_monagas_preload_hero_media', 2);
 
 function toyota_monagas_dist_is_complete() {
     $dist_dir = get_template_directory() . '/dist';
@@ -206,23 +314,53 @@ function toyota_monagas_needs_front_assets() {
         || is_page_template('blog.php') || is_page('blog') || is_home() || is_archive() || is_search();
 }
 
+/**
+ * Theme templates draw every icon as inline SVG, so the 100 KB Font Awesome
+ * stylesheet (plus its fonts) is only loaded when editorial content still
+ * uses its classes. Deployments can force it with the filter.
+ */
+function toyota_monagas_needs_fontawesome() {
+    $needs = false;
+    $queried = get_queried_object();
+    if (is_singular() && $queried instanceof WP_Post) {
+        $needs = (bool) preg_match('/class=["\'][^"\']*\bfa-[a-z]/i', (string) $queried->post_content);
+    }
+
+    return (bool) apply_filters('toyota_monagas_needs_fontawesome', $needs);
+}
+
+/**
+ * Font Awesome is decorative: never let it block the first render.
+ */
+function toyota_monagas_async_fontawesome($html, $handle, $href) {
+    if ($handle !== 'font-awesome') {
+        return $html;
+    }
+
+    $async = str_replace(
+        array("media='all'", 'media="all"'),
+        array("media='print' onload=\"this.media='all'\"", 'media="print" onload="this.media=\'all\'"'),
+        $html
+    );
+
+    return $async . '<noscript><link rel="stylesheet" href="' . esc_url($href) . '"></noscript>' . "\n";
+}
+add_filter('style_loader_tag', 'toyota_monagas_async_fontawesome', 10, 3);
+
 function toyota_monagas_scripts() {
     $theme_version = wp_get_theme()->get('Version');
-    $style_dependencies = array();
     $fontawesome_path = get_template_directory() . '/assets/fontawesome/css/all.min.css';
 
-    // Keep icons self-hosted. Typography already has a system-font fallback in style.css.
-    if (file_exists($fontawesome_path)) {
+    if (file_exists($fontawesome_path) && toyota_monagas_needs_fontawesome()) {
         wp_enqueue_style(
             'font-awesome',
             get_template_directory_uri() . '/assets/fontawesome/css/all.min.css',
             array(),
             (string) filemtime($fontawesome_path)
         );
-        $style_dependencies[] = 'font-awesome';
     }
 
-    wp_enqueue_style('toyota-style', get_stylesheet_uri(), $style_dependencies, $theme_version);
+    wp_enqueue_style('toyota-style', get_stylesheet_uri(), array(), $theme_version);
 
     $navigation_path = get_template_directory() . '/assets/js/navigation.js';
     if (file_exists($navigation_path)) {

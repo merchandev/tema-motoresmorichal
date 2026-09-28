@@ -1043,7 +1043,7 @@ input[type="submit"]:hover,
   }
 
   .site-header.luxury-nav .menu-list li.menu-item-has-children>a::before {
-    content: "▾";
+    content: "\25BE";
     transition: transform .3s ease;
   }
 
@@ -2891,7 +2891,7 @@ button:hover,
 }
 
 .focus-list li::before {
-  content: "✓";
+  content: "\2713";
   position: absolute;
   left: 0;
   top: 0;
@@ -6165,7 +6165,7 @@ main {
 }
 
 .footer-links a::before {
-  content: 'â€º';
+  content: '\203A';
   color: #EB0A1E;
   margin-right: 8px;
   opacity: 0;

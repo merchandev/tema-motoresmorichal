@@ -43,7 +43,7 @@ Vite produce cinco artefactos con nombres estables:
 - `dist/swiper.js`: Swiper empaquetado y expuesto como global para el runtime existente.
 - `dist/front.js`: runtime funcional actual, compilado desde la entrada `src/js/front.js`.
 - `dist/app.js`: módulos TypeScript adicionales, actualmente el selector de color.
-- `dist/yaris-cross-thumb.png`: medio local importado por la hoja compilada.
+- `dist/yaris-cross-thumb.jpg`: medio local importado por la hoja compilada.
 
 WordPress usa `dist/` solo cuando los cinco artefactos están presentes. Si falta alguno, usa el fallback fuente para no dejar el sitio inutilizable y muestra una advertencia visible a administradores. El paquete de producción exige un `dist/` completo, de modo que el fallback no forma parte del flujo normal de despliegue.
 
@@ -54,7 +54,7 @@ Dos assets pequeños se sirven directamente y también forman parte de la allowl
 
 Ambos pasan las comprobaciones de sintaxis de `npm run qa`; `design-system.css` se carga después del CSS compilado para mantener una cascada predecible.
 
-Font Awesome se sirve desde `assets/fontawesome/`; no depende de un CDN. La tipografía usa la pila de sistema definida en `style.css`, por lo que una fuente remota nunca bloquea la interfaz.
+Los iconos de las plantillas son SVG en línea (`toyota_monagas_icon()`). Font Awesome se sirve desde `assets/fontawesome/` sin CDN y solo se carga, sin bloquear el render, cuando el contenido de una entrada usa sus clases; el filtro `toyota_monagas_needs_fontawesome` permite forzarlo. La tipografía usa la pila de sistema definida en `style.css`, por lo que una fuente remota nunca bloquea la interfaz.
 
 Al activar el tema se registran tipos de contenido, capacidades administrativas y reglas de enlaces permanentes. La activación no crea, publica, repone ni sobrescribe contenido editorial.
 

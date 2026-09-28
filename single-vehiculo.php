@@ -245,8 +245,8 @@ $hero_lead = trim(wp_strip_all_tags(get_the_excerpt($post_id)));
             </div>
             <?php endforeach; ?>
           </div>
-          <div class="swiper-button-prev gallery-arrow-prev" role="button" tabindex="0" aria-label="Imagen anterior"></div>
-          <div class="swiper-button-next gallery-arrow-next" role="button" tabindex="0" aria-label="Imagen siguiente"></div>
+          <div class="swiper-button-prev gallery-arrow-prev" role="button" tabindex="0" aria-label="Imagen anterior"><?php echo toyota_monagas_icon('chevron-left'); ?></div>
+          <div class="swiper-button-next gallery-arrow-next" role="button" tabindex="0" aria-label="Imagen siguiente"><?php echo toyota_monagas_icon('chevron-right'); ?></div>
         </div>
 
         <div class="gallery-thumbs swiper">

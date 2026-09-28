@@ -70,11 +70,18 @@ body.admin-bar {
   text-wrap: balance;
 }
 
-:where(h1, h2) {
+/* Plain type selectors (not :where) so these weights beat Tailwind's preflight
+   reset (h1-h6 { font-weight: inherit }), which loads after style.css. Component
+   rules with a class still override them. */
+h1,
+h2 {
   font-weight: var(--tm-weight-bold);
 }
 
-:where(h3, h4, h5, h6) {
+h3,
+h4,
+h5,
+h6 {
   font-weight: var(--tm-weight-semibold);
 }
 
@@ -292,8 +299,9 @@ body.admin-bar {
   margin: 0;
 }
 
+/* Every .mmorichal-form is drawn on a dark surface; dark labels were invisible. */
 .mmorichal-form label {
-  color: var(--tm-text);
+  color: #f9fafb;
   font-weight: var(--tm-weight-semibold);
   line-height: 1.35;
 }
@@ -581,5 +589,601 @@ body.page-id-91 .site-header.luxury-nav {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==========================================================================
+   UNIFIED LAYOUT — 80% content width, 10% side margins on every device.
+   The hero slider is the only full-bleed block. Legacy layers (style.css,
+   front.css) stack several competing widths/paddings with !important, so the
+   layout properties below are deliberately !important to stay authoritative.
+   ========================================================================== */
+:root {
+  --tm-content-width: 80%;
+  --tm-section-space: clamp(48px, 8vw, 96px);
+  --tm-box-padding: clamp(20px, 5vw, 64px);
+  --tm-radius-xl: 24px;
+  --tm-font-h2: clamp(1.75rem, 1.2rem + 2.2vw, 2.75rem);
+  --tm-font-lead: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);
+  --tm-font-card-title: 1.25rem;
+  --tm-font-body: 1rem;
+  --tm-text-muted-dark: #d1d5db;
+}
+
+/* Generic containers (header, footer, inner pages). The id keeps this above
+   the legacy "90% width" block in style.css. */
+.site-header.luxury-nav .nav-wrapper,
+.site-footer .container,
+main#site-main .container {
+  width: var(--tm-content-width) !important;
+  max-width: none !important;
+  margin-inline: auto !important;
+  padding-inline: 0 !important;
+}
+
+main#site-main .container .container {
+  width: 100% !important;
+}
+
+/* The container defines the side margins, so its section must not add more. */
+main#site-main section:has(> .container) {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+  padding-inline: 0 !important;
+}
+
+/* Media never pushes the page wider than the viewport (zero specificity, so
+   any component rule that sizes an image still wins). */
+:where(img, video, iframe) {
+  max-width: 100%;
+}
+
+:where(img) {
+  height: auto;
+}
+
+/* Home sections: one width, one vertical rhythm. */
+main#site-main > :is(#vehiculos, #accesorios-mm, #info-mm, #sobre-nosotros, .home-reviews, #whatsapp-mm, #blog-mm) {
+  box-sizing: border-box;
+  width: var(--tm-content-width) !important;
+  max-width: none !important;
+  margin: var(--tm-section-space) auto !important;
+  padding-inline: 0 !important;
+  font-family: var(--tm-font);
+}
+
+main#site-main > :is(#vehiculos, .home-reviews, #whatsapp-mm, #blog-mm) {
+  padding-block: 0 !important;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Boxed (dark) sections keep their surface but a single, modest inset. */
+main#site-main > :is(#info-mm, #sobre-nosotros) {
+  padding: var(--tm-box-padding) !important;
+  border-radius: var(--tm-radius-xl);
+}
+
+main#site-main > #accesorios-mm {
+  padding: 0 !important;
+  border-radius: var(--tm-radius-xl);
+}
+
+main#site-main > #vehiculos {
+  margin-top: clamp(40px, 6vw, 72px) !important;
+}
+
+/* Inner grids span the full content width. */
+main#site-main :is(
+  #vehiculos .toyota-nav,
+  #vehiculos .toyota-slider,
+  #info-mm .services-grid,
+  #sobre-nosotros .sobre-nosotros-container,
+  #whatsapp-mm .whatsapp-wrap,
+  #blog-mm .blog-grid
+) {
+  width: 100% !important;
+  max-width: none !important;
+  margin-inline: 0 !important;
+  padding-inline: 0 !important;
+}
+
+/* ---------- Typography: one family, one scale ---------- */
+#custom-slider,
+#sobre-nosotros.sobre-nosotros,
+#whatsapp-mm,
+#blog-mm,
+.site-footer {
+  font-family: var(--tm-font);
+}
+
+main#site-main .section-header {
+  max-width: 760px;
+  min-height: 0 !important;
+  margin: 0 auto clamp(28px, 4vw, 48px) !important;
+  padding: 0 !important;
+  text-align: center;
+}
+
+main#site-main .section-header .kicker {
+  display: block;
+  margin: 0 0 0.6rem;
+  color: var(--tm-red) !important;
+  font-size: 0.8125rem;
+  font-weight: var(--tm-weight-bold);
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+main#site-main .section-header h2 {
+  margin: 0 0 0.6rem !important;
+  font-family: var(--tm-font);
+  font-size: var(--tm-font-h2) !important;
+  font-weight: var(--tm-weight-bold) !important;
+  letter-spacing: -0.015em;
+  line-height: 1.15 !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor;
+}
+
+main#site-main .section-header p {
+  max-width: 60ch;
+  margin: 0 auto !important;
+  font-family: var(--tm-font);
+  font-size: var(--tm-font-lead) !important;
+  font-weight: var(--tm-weight-regular);
+  line-height: 1.6;
+}
+
+/* Home header colours: dark text on light sections, light on dark boxes. */
+main#site-main :is(#vehiculos, .home-reviews, #whatsapp-mm, #blog-mm) .section-header h2 {
+  color: var(--tm-black) !important;
+}
+
+main#site-main :is(#vehiculos, .home-reviews, #whatsapp-mm, #blog-mm) .section-header p {
+  color: var(--tm-muted) !important;
+  opacity: 1;
+}
+
+main#site-main :is(#info-mm, #sobre-nosotros) .section-header h2 {
+  color: var(--tm-white) !important;
+}
+
+main#site-main :is(#info-mm, #sobre-nosotros) .section-header p {
+  color: var(--tm-text-muted-dark) !important;
+}
+
+/* Catalog pages use the same heading scale as the home sections. */
+main#site-main .veh-section-head h2 {
+  margin: 0 0 0.6rem;
+  font-size: var(--tm-font-h2);
+  font-weight: var(--tm-weight-bold);
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+}
+
+main#site-main .veh-section-head p {
+  font-size: var(--tm-font-lead);
+  line-height: 1.6;
+}
+
+main#site-main .veh-section-head .veh-tag {
+  display: block;
+  margin: 0 0 0.6rem;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--tm-red);
+  font-size: 0.8125rem;
+  font-weight: var(--tm-weight-bold);
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+/* Card titles and body copy share the same scale across the home. */
+main#site-main :is(#vehiculos .toyota-info-text h3, #info-mm .service-card h3, #blog-mm .blog-content h3) {
+  margin: 0 0 0.5rem;
+  font-family: var(--tm-font);
+  font-size: var(--tm-font-card-title) !important;
+  font-weight: var(--tm-weight-bold);
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+main#site-main :is(#info-mm .service-card p, #blog-mm .blog-content p, .sobre-nosotros-text p, #accesorios-mm .accesorios-content p) {
+  font-family: var(--tm-font);
+  font-size: var(--tm-font-body) !important;
+  line-height: 1.6;
+}
+
+/* ---------- Icons: inline SVG, fixed size, never wider than the control ---------- */
+.tm-icon {
+  display: inline-block;
+  flex: none;
+  vertical-align: middle;
+  overflow: visible;
+}
+
+.tm-icon--inline {
+  width: 1em;
+  height: 1em;
+}
+
+.tm-icon--nav,
+:is(.swiper-button-prev, .swiper-button-next) .tm-icon--nav {
+  width: 20px;
+  height: 20px;
+}
+
+:is(.toyota-btn, .service-btn, .accesorio-btn, .sobre-nosotros-btn, .cs-btn-slide, .blog-btn) {
+  white-space: nowrap;
+}
+
+:is(.toyota-btn, .service-btn, .accesorio-btn, .sobre-nosotros-btn) .tm-icon--inline {
+  transition: transform 180ms ease;
+}
+
+:is(.toyota-btn, .service-btn, .accesorio-btn, .sobre-nosotros-btn):hover .tm-icon--inline {
+  transform: translateX(3px);
+}
+
+/* ---------- Hero: full bleed, text aligned to the 10% gutter ---------- */
+#custom-slider .cs-picture-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  pointer-events: none;
+}
+
+#custom-slider .cs-picture-bg img,
+#custom-slider img.cs-video-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#custom-slider video.cs-video-bg {
+  background: #000;
+}
+
+#custom-slider .cs-slide-content {
+  left: 10%;
+  right: 10%;
+  max-width: 560px;
+}
+
+#custom-slider .cs-play-toggle {
+  right: 10%;
+}
+
+/* ---------- Models slider ---------- */
+#vehiculos .toyota-nav {
+  padding: 0 !important;
+  overflow: visible;
+}
+
+#vehiculos .toyota-tabs {
+  width: auto;
+  max-width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px clamp(12px, 3vw, 32px);
+}
+
+#vehiculos .toyota-tab {
+  min-height: 44px;
+  padding: 8px 12px !important;
+  font-size: 1rem !important;
+}
+
+#vehiculos .toyota-tab::after {
+  left: 12px;
+  right: 12px;
+  bottom: 2px;
+}
+
+/* Bottom padding leaves room for the card shadow inside Swiper's clipped box. */
+#vehiculos .toyota-slider {
+  padding-block: 8px 28px !important;
+  margin-top: clamp(16px, 3vw, 28px);
+}
+
+#vehiculos .toyota-slider .swiper-slide {
+  min-width: 0 !important;
+  max-width: none !important;
+  height: auto;
+}
+
+#vehiculos .toyota-card {
+  width: 100%;
+  border: 0;
+  border-radius: 20px;
+  box-shadow: 0 8px 20px rgba(17, 17, 17, 0.08);
+}
+
+#vehiculos .toyota-imgbox {
+  aspect-ratio: 4 / 3;
+  background: #e9eaec;
+}
+
+#vehiculos .toyota-imgbox a {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#vehiculos .toyota-imgbox img {
+  display: block;
+  transition: transform 400ms ease;
+}
+
+#vehiculos .toyota-card:hover .toyota-imgbox img {
+  transform: scale(1.04);
+}
+
+#vehiculos .toyota-info {
+  min-height: 0;
+  gap: 0.75rem;
+  padding: clamp(18px, 2.5vw, 24px);
+}
+
+#vehiculos .toyota-year {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.8125rem;
+  font-weight: var(--tm-weight-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#vehiculos .toyota-info-text p {
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+#vehiculos .toyota-buttons {
+  gap: 0.75rem 1.25rem;
+}
+
+#vehiculos .toyota-btn {
+  min-height: 44px;
+  padding: 0.65rem 1.25rem !important;
+}
+
+#vehiculos .toyota-contact a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+/* Arrows live under the cards so they never cover a title or button. */
+#vehiculos .toyota-slider-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 0;
+}
+
+#vehiculos .toyota-slider-controls .toyota-arrow {
+  position: static;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0 !important;
+  border: 1px solid #d4d4d8 !important;
+  border-radius: 50% !important;
+  background: var(--tm-white) !important;
+  color: var(--tm-black) !important;
+  box-shadow: 0 2px 8px rgba(17, 17, 17, 0.06) !important;
+  transform: none;
+  cursor: pointer;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+#vehiculos .toyota-slider-controls .toyota-arrow:hover {
+  border-color: var(--tm-red) !important;
+  background: var(--tm-red) !important;
+  color: var(--tm-white) !important;
+  transform: none;
+}
+
+#vehiculos .toyota-slider-controls .toyota-arrow:is(:disabled, .swiper-button-disabled) {
+  opacity: 0.35;
+  cursor: default;
+  pointer-events: none;
+}
+
+#vehiculos .toyota-slider-controls .toyota-arrow.swiper-button-lock {
+  display: none;
+}
+
+/* ---------- Other home blocks ---------- */
+main#site-main #info-mm .services-grid {
+  margin-top: 0 !important;
+  gap: clamp(16px, 2vw, 28px);
+}
+
+main#site-main #info-mm .service-card {
+  min-height: 0;
+  padding: clamp(24px, 3vw, 36px) clamp(18px, 2vw, 28px);
+  gap: 0.75rem;
+}
+
+main#site-main #info-mm .service-card p {
+  margin-bottom: 0.75rem;
+}
+
+main#site-main #info-mm .service-icon {
+  margin-bottom: 0.25rem;
+}
+
+/* The dark box already provides the surface; no second nested card. */
+main#site-main .sobre-nosotros-container {
+  margin-top: 0 !important;
+  padding: 0 !important;
+  gap: clamp(24px, 4vw, 48px);
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+main#site-main .sobre-nosotros-container:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+main#site-main .sobre-nosotros-text {
+  gap: 1rem;
+  text-align: left;
+}
+
+main#site-main .sobre-nosotros-text h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+}
+
+main#site-main .sobre-nosotros-text .sobre-nosotros-btn {
+  align-self: flex-start;
+  justify-self: start;
+}
+
+main#site-main #accesorios-mm {
+  min-height: clamp(360px, 40vw, 500px);
+  height: auto;
+}
+
+main#site-main #accesorios-mm .accesorios-overlay {
+  padding: var(--tm-box-padding);
+}
+
+main#site-main #accesorios-mm .accesorios-content h2 {
+  font-size: var(--tm-font-h2);
+  font-weight: var(--tm-weight-bold);
+  line-height: 1.15;
+}
+
+/* Fixed backgrounds repaint on every scroll frame on phones (and iOS ignores them). */
+@media (max-width: 1024px), (hover: none) {
+  #accesorios-mm {
+    background-attachment: scroll !important;
+  }
+}
+
+main#site-main #whatsapp-mm .mmorichal-form {
+  max-width: 720px;
+  margin-inline: auto;
+  padding: clamp(20px, 4vw, 36px);
+}
+
+main#site-main #blog-mm .blog-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 28px);
+}
+
+main#site-main #blog-mm .blog-card {
+  width: 100%;
+  margin: 0;
+  border: 1px solid #ececec;
+  border-radius: 20px;
+}
+
+main#site-main #blog-mm .blog-img {
+  aspect-ratio: 16 / 10;
+}
+
+main#site-main #blog-mm .blog-img img {
+  width: 100%;
+  height: 100%;
+}
+
+main#site-main #blog-mm .blog-content {
+  align-items: flex-start;
+  padding: clamp(18px, 2.5vw, 24px);
+  text-align: left;
+}
+
+main#site-main #blog-mm .blog-content h3 {
+  color: var(--tm-black);
+}
+
+main#site-main #blog-mm .blog-content p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--tm-muted);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+@media (max-width: 1023px) {
+  main#site-main #blog-mm .blog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  main#site-main #info-mm .services-grid,
+  main#site-main #blog-mm .blog-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #vehiculos .toyota-tabs {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 8px;
+  }
+
+  #vehiculos .toyota-tab {
+    justify-self: center;
+    width: auto;
+  }
+
+  main#site-main .sobre-nosotros-images {
+    gap: 12px;
+  }
+}
+
+/* ---------- Footer: headings, rule and links share one left edge ---------- */
+.site-footer .footer-links a {
+  position: relative;
+}
+
+.site-footer .footer-links a::before {
+  position: absolute;
+  left: -14px;
+  margin: 0;
+}
+
+/* The logo is already white-on-red for dark backgrounds; inverting it turned
+   the emblem into a blank white square. */
+.site-footer .footer-logo img {
+  filter: none;
+}
+
+@media (min-width: 601px) {
+  .site-footer .footer-col > h2,
+  .site-footer .footer-brand {
+    text-align: left;
+  }
+}
+
+@media (max-width: 600px) {
+  .site-footer .footer-links a::before {
+    display: none;
   }
 }

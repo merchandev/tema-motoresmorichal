@@ -20,7 +20,7 @@ const minimumSizes = {
 }
 const errors = []
 const expectedFingerprint = `toyota-source:${getBundleSourceFingerprint()}`
-const expectedFiles = new Set([...Object.keys(requirements), 'yaris-cross-thumb.png'])
+const expectedFiles = new Set([...Object.keys(requirements), 'yaris-cross-thumb.jpg'])
 
 function collectDistFiles(directory, prefix = '') {
   if (!existsSync(directory)) return []
@@ -88,12 +88,12 @@ if (existsSync(stylePath)) {
   }
 }
 
-const sourceImagePath = resolve(projectRoot, 'assets', 'img', 'home', 'yaris-cross-thumb.png')
-const distImagePath = resolve(distDir, 'yaris-cross-thumb.png')
+const sourceImagePath = resolve(projectRoot, 'assets', 'img', 'home', 'yaris-cross-thumb.jpg')
+const distImagePath = resolve(distDir, 'yaris-cross-thumb.jpg')
 if (!existsSync(sourceImagePath) || !existsSync(distImagePath)) {
   errors.push('The source or emitted Yaris Cross thumbnail is missing.')
 } else if (!readFileSync(sourceImagePath).equals(readFileSync(distImagePath))) {
-  errors.push('dist/yaris-cross-thumb.png differs from its source asset.')
+  errors.push('dist/yaris-cross-thumb.jpg differs from its source asset.')
 }
 
 if (errors.length > 0) {
